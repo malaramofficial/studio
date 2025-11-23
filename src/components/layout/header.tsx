@@ -17,7 +17,6 @@ export function AppHeader() {
   const user = {
     name: "विद्यार्थी",
     email: "student@rajasthan.ai",
-    image: `https://i.pravatar.cc/150?u=student`,
   };
 
   return (
@@ -41,7 +40,7 @@ export function AppHeader() {
               className="relative h-10 w-10 rounded-full"
             >
               <Avatar className="h-10 w-10 border-2 border-primary">
-                <AvatarImage src={user.image} alt={user.name} />
+                {/* The AvatarImage is removed, so the AvatarFallback will be displayed */}
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
             </Button>
