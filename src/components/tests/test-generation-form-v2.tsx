@@ -25,7 +25,7 @@ import { syllabus } from "@/lib/syllabus";
 import type { Stream, Subject } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { generateWrittenExamV2 } from "@/lib/test-actions-v2";
-import { evaluateWrittenExam } from "@/lib/test-actions"; // Corrected import
+import { evaluateWrittenExam } from "@/lib/test-actions"; 
 import { TestInterface } from "./test-interface";
 import { EvaluationDisplay } from "./evaluation-display";
 import type { EvaluateWrittenExamOutput, EvaluateWrittenExamInput } from "@/ai/flows/evaluate-written-exam";
@@ -78,7 +78,7 @@ export function TestGenerationFormV2() {
         subject,
         marks: 20,
         durationMinutes: 45,
-        chapters: [], // Simplified: No chapter selection
+        chapters: [],
       });
       setExamOutput(generatedExam);
     });
@@ -96,7 +96,6 @@ export function TestGenerationFormV2() {
     };
 
     startTransition(async () => {
-      // Corrected to use the single, correct evaluation action
       const result = await evaluateWrittenExam(evaluationInput);
       setEvaluation(result);
     });
