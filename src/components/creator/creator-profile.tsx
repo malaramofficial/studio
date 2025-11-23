@@ -18,7 +18,7 @@ type CreatorProfileProps = {
 
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [creatorImageUrl, setCreatorImageUrl] = useState("https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg");
+  const [creatorImageUrl, setCreatorImageUrl] = useState("https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -32,7 +32,7 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
       } catch (error: any) {
         if (error.code === 'storage/object-not-found') {
           // Use default image if not found in storage
-          setCreatorImageUrl("https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg");
+          setCreatorImageUrl("https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop");
         } else {
           console.error("Error fetching creator image:", error);
         }
@@ -44,37 +44,6 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    const imageRef = ref(storage, 'creator-profile/profile-photo.jpg');
-
-    try {
-      await uploadBytes(imageRef, file);
-      const newUrl = await getDownloadURL(imageRef);
-      setCreatorImageUrl(newUrl);
-      toast({
-        title: "Success!",
-        description: "Your profile photo has been updated.",
-      });
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      toast({
-        variant: "destructive",
-        title: "Upload Failed",
-        description: "There was a problem uploading your photo. Please try again.",
-      });
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handlePhotoChangeClick = () => {
-    fileInputRef.current?.click();
-  };
 
   const infoSections = [
     { icon: UserCircle, label: "Role", value: creatorInfo.role },
@@ -114,19 +83,8 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
               </div>
               <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>
               <p className="text-muted-foreground mt-1">{creatorInfo.dob} &bull; {creatorInfo.gender}</p>
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
-                accept="image/*"
-                disabled={isUploading}
-              />
-              <Button onClick={handlePhotoChangeClick} variant="outline" className="mt-4 gap-2" disabled={isUploading}>
-                {isUploading ? <Loader2 className="animate-spin" /> : <Edit className="h-4 w-4" />}
-                {isUploading ? 'Uploading...' : 'Change Photo'}
-              </Button>
-              <Button onClick={handleOpenModal} className="mt-2 gap-2">
+              
+              <Button onClick={handleOpenModal} className="mt-4 gap-2">
                 <Instagram /> Instagram
               </Button>
             </div>
