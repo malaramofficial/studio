@@ -16,7 +16,7 @@ type CreatorProfileProps = {
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const creatorImageUrl = "https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop";
+  const creatorImageUrl = "https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg";
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
