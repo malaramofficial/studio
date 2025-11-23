@@ -42,6 +42,10 @@ export function WrittenExamClient() {
   
   const { toast } = useToast();
 
+  const handleAnswerChange = (questionId: string, value: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  };
+  
   const generateExam = async () => {
     setLoadingGenerate(true);
     setExam(null);
@@ -103,7 +107,7 @@ export function WrittenExamClient() {
       } else {
         throw new Error(data.error || 'Evaluation failed');
       }
-    } catch (e) => {
+    } catch (e) {
       const error = e instanceof Error ? e.message : String(e);
       toast({ variant: "destructive", title: "Evaluation Failed", description: error });
       setSubmitted(false); // Allow user to try again if evaluation fails
@@ -134,7 +138,7 @@ export function WrittenExamClient() {
       if (timerIdRef.current) clearInterval(timerIdRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timer, submitted]);
+  }, [exam, submitted]);
 
 
   const resetExam = () => {

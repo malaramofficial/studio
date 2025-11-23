@@ -27,23 +27,22 @@ export type EvaluationResult = EvaluateWrittenExamOutput & {
     })[]
 };
 
-// Helper function to assign marks. This can be improved.
+// Helper function to assign marks based on question type. This can be improved.
 function assignQuestionMetadata(questionType: 'long' | 'short' | 'mcq') {
-    let marks = 5; // Default for short
-    if (questionType === 'long') marks = 10;
-    if (questionType === 'mcq') marks = 2;
-    
-    return { marks };
+    // A simple logic for marks distribution
+    if (questionType === 'long') return { marks: 10 };
+    if (questionType === 'mcq') return { marks: 2 };
+    return { marks: 5 }; // Default for short
 }
 
-// Wrapper for the Genkit flow to generate an exam.
+// This function now robustly wraps the Genkit flow for exam generation.
 export async function generateWrittenExamGenkit(payload: GenerateWrittenExamInputV2): Promise<GeneratedExam> {
   console.log("Calling Genkit to generate exam with payload:", payload);
   try {
     const result = await generateWrittenExamV2(payload);
 
-    if (result.status !== 'success' || !result.exam || !Array.isArray(result.exam.questions)) {
-      throw new Error("Invalid response structure from Genkit flow.");
+    if (result.status !== 'success' || !result.exam || !Array.isArray(result.exam.questions) || result.exam.questions.length === 0) {
+      throw new Error("Invalid or empty response structure from Genkit flow.");
     }
 
     console.log(`Genkit returned ${result.exam.questions.length} questions.`);
@@ -51,7 +50,7 @@ export async function generateWrittenExamGenkit(payload: GenerateWrittenExamInpu
     const transformedQuestions = result.exam.questions.map((q, index) => {
         const { marks } = assignQuestionMetadata(q.type);
         return {
-            id: `q_${index}`,
+            id: `q_${index + 1}`, // More human-readable ID
             marks,
             questionText: q.question,
             type: q.type,
@@ -66,17 +65,18 @@ export async function generateWrittenExamGenkit(payload: GenerateWrittenExamInpu
       examId: "exam_" + Date.now(),
       title: `${result.exam.subject} - ${result.exam.stream}`,
       durationMinutes: payload.durationMinutes,
-      totalMarks: totalMarks,
+      totalMarks: totalMarks, // Use calculated total marks for consistency
       questions: transformedQuestions,
     };
   } catch (error) {
     console.error("Error in generateWrittenExamGenkit:", error);
+    // Rethrow the error to be handled by the API route
     throw new Error("Failed to generate exam paper from AI model.");
   }
 }
 
 
-// Wrapper for the Genkit flow to evaluate an exam.
+// This function now robustly wraps the Genkit flow for exam evaluation.
 export async function evaluateWrittenExamGenkit(payload: {
   examId: string;
   questions: { id: string; questionText: string; maxMarks: number }[];
@@ -84,7 +84,12 @@ export async function evaluateWrittenExamGenkit(payload: {
 }): Promise<EvaluationResult> {
     console.log("Calling Genkit to evaluate exam for examId:", payload.examId);
     
+    if (!payload.questions || payload.questions.length === 0) {
+        throw new Error("No questions provided for evaluation.");
+    }
+
     const evaluationInput: EvaluateWrittenExamInput = {
+        // Ensure we only send the text, as defined in the flow
         questions: payload.questions.map(q => q.questionText),
         answers: payload.answers.map(a => a.answerText),
     };
@@ -92,7 +97,7 @@ export async function evaluateWrittenExamGenkit(payload: {
     try {
         const result = await evaluateExamFlow(evaluationInput);
 
-        if (!result || !Array.isArray(result.perQuestion)) {
+        if (!result || !Array.isArray(result.perQuestion) || result.perQuestion.length !== payload.questions.length) {
             throw new Error("Invalid response structure from evaluation flow.");
         }
 
@@ -113,6 +118,7 @@ export async function evaluateWrittenExamGenkit(payload: {
 
     } catch (error) {
          console.error("Error in evaluateWrittenExamGenkit:", error);
+         // Rethrow the error to be handled by the API route
          throw new Error("Failed to evaluate exam paper with AI model.");
     }
 }
