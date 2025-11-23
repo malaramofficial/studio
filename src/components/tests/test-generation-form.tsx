@@ -30,6 +30,7 @@ import { generateWrittenExam, evaluateWrittenExam } from "@/lib/test-actions";
 import { TestInterface } from "./test-interface";
 import { EvaluationDisplay } from "./evaluation-display";
 import type { EvaluateWrittenExamOutput } from "@/ai/flows/evaluate-written-exam";
+import type { GenerateWrittenExamOutput } from "@/ai/flows/generate-written-exam";
 
 const formSchema = z.object({
   streamId: z.string().min(1, "Please select a stream."),
@@ -42,7 +43,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function TestGenerationForm() {
   const [isPending, startTransition] = useTransition();
-  const [examContent, setExamContent] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<GenerateWrittenExamOutput | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluateWrittenExamOutput | null>(null);
   const searchParams = useSearchParams();
 
@@ -119,20 +120,19 @@ export function TestGenerationForm() {
     if (!subject || chapters.length === 0) return;
 
     startTransition(async () => {
-      const content = await generateWrittenExam({
+      const generatedQuestions = await generateWrittenExam({
         subject,
         chapters: chapters,
         marks: 20,
         durationMinutes: 45,
       });
-      setExamContent(content);
+      setQuestions(generatedQuestions);
     });
   }
 
   const handleTestSubmit = (answers: { [key: string]: string }) => {
-    if (!examContent) return;
+    if (!questions) return;
 
-    const questions = examContent.split('\n').filter(line => /^\d+\./.test(line.trim()));
     const answerValues = Object.values(answers);
 
     startTransition(async () => {
@@ -145,7 +145,7 @@ export function TestGenerationForm() {
   }
 
   const handleRetry = () => {
-    setExamContent(null);
+    setQuestions(null);
     setEvaluation(null);
     form.reset({
       streamId: syllabus[0].id,
@@ -159,10 +159,10 @@ export function TestGenerationForm() {
     return <EvaluationDisplay evaluation={evaluation} onRetry={handleRetry} />;
   }
 
-  if (examContent) {
+  if (questions) {
     return (
       <TestInterface
-        examContent={examContent}
+        questions={questions}
         isSubmitting={isPending}
         onSubmit={handleTestSubmit}
       />

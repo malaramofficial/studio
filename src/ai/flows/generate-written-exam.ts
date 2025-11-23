@@ -19,7 +19,8 @@ const GenerateWrittenExamInputSchema = z.object({
 });
 export type GenerateWrittenExamInput = z.infer<typeof GenerateWrittenExamInputSchema>;
 
-const GenerateWrittenExamOutputSchema = z.string().describe('The generated exam in RBSE style.');
+// The output is now an array of strings, where each string is a question.
+const GenerateWrittenExamOutputSchema = z.array(z.string()).describe('A list of questions for the exam.');
 export type GenerateWrittenExamOutput = z.infer<typeof GenerateWrittenExamOutputSchema>;
 
 export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<GenerateWrittenExamOutput> {
@@ -39,16 +40,9 @@ Chapters: {{#each chapters}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 Total Marks: {{{marks}}}
 Duration: {{{durationMinutes}}} minutes
 
-The exam should be in RBSE style, with the following sections:
-- Section A: Short answer questions
-- Section B: Long answer questions
-- Section C: Very long answer questions
+Generate a list of questions for the exam. The questions should cover a mix of short answer, long answer, and very long answer types, appropriate for the marks and duration.
 
-CRITICAL: Each question must start with a number followed by a period (e.g., "1.", "2.", "3."). This is a strict rule.
-
-Include clear instructions for each section and the marks for each question.
-
-Format the output as a plain text document, suitable for printing and distribution to students.`,
+CRITICAL: Return the output as a JSON array of strings, where each string is a single question. Do not include section headers or any other text, only the questions themselves. Each question should be a complete sentence.`,
 });
 
 const generateWrittenExamFlow = ai.defineFlow(
@@ -59,6 +53,7 @@ const generateWrittenExamFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    // If the output is null or empty, return an empty array.
+    return output || [];
   }
 );

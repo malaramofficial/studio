@@ -1,16 +1,16 @@
 "use server";
 
-import { generateWrittenExam as genExam, type GenerateWrittenExamInput } from "@/ai/flows/generate-written-exam";
+import { generateWrittenExam as genExam, type GenerateWrittenExamInput, type GenerateWrittenExamOutput } from "@/ai/flows/generate-written-exam";
 import { evaluateWrittenExam as evalExam, type EvaluateWrittenExamInput } from "@/ai/flows/evaluate-written-exam";
 
-export async function generateWrittenExam(input: GenerateWrittenExamInput) {
+export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<GenerateWrittenExamOutput> {
   try {
     const result = await genExam(input);
     return result;
   } catch (error) {
     console.error("Error in generateWrittenExam:", error);
-    // In a real app, you'd have more robust failover here (Groq, local model, etc.)
-    return "माफ़ कीजिए, परीक्षा बनाने में कुछ कठिनाई हो रही है। कृपया पुनः प्रयास करें।";
+    // Return an empty array in case of an error to prevent crashes.
+    return [];
   }
 }
 

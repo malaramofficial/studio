@@ -5,18 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Loader2, Send } from "lucide-react";
+import type { GenerateWrittenExamOutput } from "@/ai/flows/generate-written-exam";
 
 type TestInterfaceProps = {
-  examContent: string;
+  questions: GenerateWrittenExamOutput;
   isSubmitting: boolean;
   onSubmit: (answers: { [key: string]: string }) => void;
 };
 
-export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInterfaceProps) {
-  // Regex to find lines that start with a number followed by a period.
-  // This is a more robust way to find questions.
-  const questions = examContent.split('\n').filter(line => /^\d+\./.test(line.trim()));
-  
+export function TestInterface({ questions, isSubmitting, onSubmit }: TestInterfaceProps) {
   const [answers, setAnswers] = useState<{ [key: string]: string }>(
     questions.reduce((acc, _, index) => ({ ...acc, [index]: "" }), {})
   );
@@ -38,10 +35,10 @@ export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInter
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-6">
-            {questions.length > 0 ? (
+            {questions && questions.length > 0 ? (
               questions.map((question, index) => (
                 <div key={index} className="space-y-2">
-                  <p className="font-semibold whitespace-pre-wrap">{question}</p>
+                  <p className="font-semibold whitespace-pre-wrap">{`${index + 1}. ${question}`}</p>
                   <Textarea
                     value={answers[index]}
                     onChange={(e) => handleAnswerChange(index, e.target.value)}
@@ -53,12 +50,12 @@ export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInter
               ))
             ) : (
                 <div className="text-center text-muted-foreground p-8">
-                    <p className="mb-4">माफ़ कीजिए, उत्पन्न किए गए परीक्षा-पत्र से प्रश्नों को निकाला नहीं जा सका।</p>
+                    <p className="mb-4">माफ़ कीजिए, इस विषय के लिए कोई प्रश्न उत्पन्न नहीं किया जा सका।</p>
                     <p>यह एक अस्थायी समस्या हो सकती है। कृपया एक नई परीक्षा उत्पन्न करने का प्रयास करें।</p>
                 </div>
             )}
           </div>
-          {questions.length > 0 && (
+          {questions && questions.length > 0 && (
             <CardFooter className="p-0">
                 <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
                 {isSubmitting ? (
