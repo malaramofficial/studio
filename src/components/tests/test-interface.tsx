@@ -49,7 +49,7 @@ export function TestInterface({ questions, isSubmitting, onSubmit }: TestInterfa
               ))
             ) : (
                 <div className="text-center text-muted-foreground p-8">
-                    <p className="mb-4">माफ़ कीजिए, इस विषय के लिए कोई प्रश्न उत्पन्न नहीं किया जा सका।</p>
+                    <p className="mb-4">माफ़ कीजिए, उत्पन्न किए गए परीक्षा-पत्र से प्रश्नों को निकाला नहीं जा सका।</p>
                     <p>यह एक अस्थायी समस्या हो सकती है। कृपया एक नई परीक्षा उत्पन्न करने का प्रयास करें।</p>
                 </div>
             )}

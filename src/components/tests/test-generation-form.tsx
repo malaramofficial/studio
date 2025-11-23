@@ -43,7 +43,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function TestGenerationForm() {
   const [isPending, startTransition] = useTransition();
-  const [questions, setQuestions] = useState<string[] | null>(null);
+  const [examOutput, setExamOutput] = useState<GenerateWrittenExamOutput | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluateWrittenExamOutput | null>(null);
   const searchParams = useSearchParams();
 
@@ -120,23 +120,24 @@ export function TestGenerationForm() {
     if (!subject || chapters.length === 0) return;
 
     startTransition(async () => {
-      const generatedQuestionsText: GenerateWrittenExamOutput = await generateWrittenExam({
+      const generatedExam = await generateWrittenExam({
         subject,
         chapters: chapters,
         marks: 20,
         durationMinutes: 45,
       });
-      const questionArray = generatedQuestionsText.split('\n').filter(q => q.trim() !== '');
-      setQuestions(questionArray);
+      setExamOutput(generatedExam);
     });
   }
 
   const handleTestSubmit = (answers: { [key: string]: string }) => {
-    if (!questions) return;
-
+    if (!examOutput) return;
+    
+    const questionsText = examOutput.exam.questions.map(q => q.question);
     const answerValues = Object.values(answers);
+
     const evaluationInput: EvaluateWrittenExamInput = {
-        questions: questions,
+        questions: questionsText,
         answers: answerValues
     };
 
@@ -147,7 +148,7 @@ export function TestGenerationForm() {
   }
 
   const handleRetry = () => {
-    setQuestions(null);
+    setExamOutput(null);
     setEvaluation(null);
     form.reset({
       streamId: syllabus[0].id,
@@ -161,10 +162,10 @@ export function TestGenerationForm() {
     return <EvaluationDisplay evaluation={evaluation} onRetry={handleRetry} />;
   }
 
-  if (questions) {
+  if (examOutput) {
     return (
       <TestInterface
-        questions={questions}
+        questions={examOutput.exam.questions.map(q => q.question)}
         isSubmitting={isPending}
         onSubmit={handleTestSubmit}
       />

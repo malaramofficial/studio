@@ -19,8 +19,25 @@ const GenerateWrittenExamInputSchema = z.object({
 });
 export type GenerateWrittenExamInput = z.infer<typeof GenerateWrittenExamInputSchema>;
 
-// The output is now a single string containing all questions, separated by newlines.
-const GenerateWrittenExamOutputSchema = z.string().describe('A list of questions for the exam as a single string, with each question on a new line.');
+// Define the structured JSON output schema as per the user's override.
+const QuestionSchema = z.object({
+  type: z.enum(['long', 'short', 'mcq']).describe('The type of the question.'),
+  question: z.string().describe('The question text.'),
+  options: z.array(z.string()).optional().describe('A list of options for MCQ questions.'),
+  answer: z.string().optional().describe('The correct answer for MCQ questions.'),
+});
+
+const ExamSchema = z.object({
+  class: z.string().describe("The class for which the exam is generated, e.g., '12'"),
+  stream: z.string().describe("The stream, e.g., 'Science', 'Arts', 'Commerce' or 'all'."),
+  subject: z.string().describe('The subject of the exam.'),
+  questions: z.array(QuestionSchema).describe('An array of question objects.'),
+});
+
+const GenerateWrittenExamOutputSchema = z.object({
+  status: z.literal('success').describe('Indicates that the operation was successful.'),
+  exam: ExamSchema,
+});
 export type GenerateWrittenExamOutput = z.infer<typeof GenerateWrittenExamOutputSchema>;
 
 export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<GenerateWrittenExamOutput> {
@@ -35,14 +52,41 @@ const prompt = ai.definePrompt({
 
 The exam must be based strictly on the RBSE syllabus for the given subject and chapters.
 
+Class: 12
 Subject: {{{subject}}}
 Chapters: {{#each chapters}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
 Total Marks: {{{marks}}}
 Duration: {{{durationMinutes}}} minutes
 
-Generate a list of questions for the exam. The questions should cover a mix of short answer, long answer, and very long answer types, appropriate for the marks and duration.
+CRITICAL: You must generate a structured JSON output. Do not output anything other than the JSON object.
+The final JSON object must strictly adhere to the following format:
 
-CRITICAL: Return the output as a plain text string. Each question must be on a new line. Do not include section headers, question numbers, or any other formatting. Just the questions, each on a new line.`,
+{
+  "status": "success",
+  "exam": {
+    "class": "12",
+    "stream": "auto-detected",
+    "subject": "{{{subject}}}",
+    "questions": [
+      {
+        "type": "long",
+        "question": "..."
+      },
+      {
+        "type": "short",
+        "question": "..."
+      },
+      {
+        "type": "mcq",
+        "question": "...",
+        "options": ["A", "B", "C", "D"],
+        "answer": "A"
+      }
+    ]
+  }
+}
+
+Generate a mix of short answer, long answer, and multiple-choice questions (MCQ) appropriate for the marks and duration. If information is missing, auto-detect it. Never respond with error messages; always generate the exam paper.`,
 });
 
 const generateWrittenExamFlow = ai.defineFlow(
@@ -53,7 +97,9 @@ const generateWrittenExamFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    // If the output is null or empty, return an empty string.
-    return output || "";
+    if (!output) {
+      throw new Error("Failed to generate exam. The model returned a null output.");
+    }
+    return output;
   }
 );
