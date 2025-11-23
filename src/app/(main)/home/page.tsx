@@ -48,9 +48,6 @@ const featureCards = [
 
 export default function HomePage() {
   const userName = "विद्यार्थी"; // Mock user name
-  const continueLearningImage = PlaceHolderImages.find(
-    (img) => img.id === "continue-learning"
-  )!;
   const adBannerImage = PlaceHolderImages.find(
     (img) => img.id === "ad-banner"
   )!;
@@ -84,41 +81,8 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Continue Learning */}
-      <Card className="flex flex-col md:flex-row overflow-hidden rounded-2xl shadow-lg">
-        <div className="md:w-1/2">
-          <Image
-            src={continueLearningImage.imageUrl}
-            alt={continueLearningImage.description}
-            width={600}
-            height={400}
-            className="w-full h-full object-cover"
-            data-ai-hint={continueLearningImage.imageHint}
-          />
-        </div>
-        <div className="md:w-1/2 flex flex-col justify-center">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl text-primary">पढ़ाई जारी रखें</CardTitle>
-            <CardDescription>
-              स्थिरविद्युत विभव तथा धारिता - संधारित्र तथा धारिता
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p>आपने यह अध्याय 45% पूरा कर लिया है। बहुत बढ़िया!</p>
-          </CardContent>
-          <CardFooter>
-            <Button asChild size="lg" className="rounded-xl">
-              <Link href="#">
-                <PlayCircle className="mr-2 h-5 w-5" />
-                अभी शुरू करें
-              </Link>
-            </Button>
-          </CardFooter>
-        </div>
-      </Card>
-
       {/* Feature Cards */}
-      <div className="space-y-4">
+      <div className="space-y-4 pt-8">
         <h2 className="font-headline text-2xl font-bold">मुख्य फीचर्स</h2>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {featureCards.map((feature) => {
