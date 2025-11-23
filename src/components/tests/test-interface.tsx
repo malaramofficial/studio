@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Loader2, Send } from "lucide-react";
-import type { GenerateWrittenExamOutput } from "@/ai/flows/generate-written-exam";
 
 type TestInterfaceProps = {
-  questions: GenerateWrittenExamOutput;
+  questions: string[];
   isSubmitting: boolean;
   onSubmit: (answers: { [key: string]: string }) => void;
 };
@@ -56,7 +55,7 @@ export function TestInterface({ questions, isSubmitting, onSubmit }: TestInterfa
             )}
           </div>
           {questions && questions.length > 0 && (
-            <CardFooter className="p-0">
+            <CardFooter className="p-0 pt-4">
                 <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
                 {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

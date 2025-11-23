@@ -9,8 +9,8 @@ export async function generateWrittenExam(input: GenerateWrittenExamInput): Prom
     return result;
   } catch (error) {
     console.error("Error in generateWrittenExam:", error);
-    // Return an empty array in case of an error to prevent crashes.
-    return [];
+    // Return an empty string in case of an error to prevent crashes.
+    return "";
   }
 }
 

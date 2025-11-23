@@ -29,7 +29,7 @@ import { Loader2 } from "lucide-react";
 import { generateWrittenExam, evaluateWrittenExam } from "@/lib/test-actions";
 import { TestInterface } from "./test-interface";
 import { EvaluationDisplay } from "./evaluation-display";
-import type { EvaluateWrittenExamOutput } from "@/ai/flows/evaluate-written-exam";
+import type { EvaluateWrittenExamOutput, EvaluateWrittenExamInput } from "@/ai/flows/evaluate-written-exam";
 import type { GenerateWrittenExamOutput } from "@/ai/flows/generate-written-exam";
 
 const formSchema = z.object({
@@ -43,7 +43,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function TestGenerationForm() {
   const [isPending, startTransition] = useTransition();
-  const [questions, setQuestions] = useState<GenerateWrittenExamOutput | null>(null);
+  const [questions, setQuestions] = useState<string[] | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluateWrittenExamOutput | null>(null);
   const searchParams = useSearchParams();
 
@@ -120,13 +120,14 @@ export function TestGenerationForm() {
     if (!subject || chapters.length === 0) return;
 
     startTransition(async () => {
-      const generatedQuestions = await generateWrittenExam({
+      const generatedQuestionsText: GenerateWrittenExamOutput = await generateWrittenExam({
         subject,
         chapters: chapters,
         marks: 20,
         durationMinutes: 45,
       });
-      setQuestions(generatedQuestions);
+      const questionArray = generatedQuestionsText.split('\n').filter(q => q.trim() !== '');
+      setQuestions(questionArray);
     });
   }
 
@@ -134,12 +135,13 @@ export function TestGenerationForm() {
     if (!questions) return;
 
     const answerValues = Object.values(answers);
+    const evaluationInput: EvaluateWrittenExamInput = {
+        questions: questions,
+        answers: answerValues
+    };
 
     startTransition(async () => {
-      const result = await evaluateWrittenExam({
-        questions,
-        answers: answerValues
-      });
+      const result = await evaluateWrittenExam(evaluationInput);
       setEvaluation(result);
     });
   }

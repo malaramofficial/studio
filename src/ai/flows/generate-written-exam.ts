@@ -19,8 +19,8 @@ const GenerateWrittenExamInputSchema = z.object({
 });
 export type GenerateWrittenExamInput = z.infer<typeof GenerateWrittenExamInputSchema>;
 
-// The output is now an array of strings, where each string is a question.
-const GenerateWrittenExamOutputSchema = z.array(z.string()).describe('A list of questions for the exam.');
+// The output is now a single string containing all questions, separated by newlines.
+const GenerateWrittenExamOutputSchema = z.string().describe('A list of questions for the exam as a single string, with each question on a new line.');
 export type GenerateWrittenExamOutput = z.infer<typeof GenerateWrittenExamOutputSchema>;
 
 export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<GenerateWrittenExamOutput> {
@@ -42,7 +42,7 @@ Duration: {{{durationMinutes}}} minutes
 
 Generate a list of questions for the exam. The questions should cover a mix of short answer, long answer, and very long answer types, appropriate for the marks and duration.
 
-CRITICAL: Return the output as a JSON array of strings, where each string is a single question. Do not include section headers or any other text, only the questions themselves. Each question should be a complete sentence.`,
+CRITICAL: Return the output as a plain text string. Each question must be on a new line. Do not include section headers, question numbers, or any other formatting. Just the questions, each on a new line.`,
 });
 
 const generateWrittenExamFlow = ai.defineFlow(
@@ -53,7 +53,7 @@ const generateWrittenExamFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    // If the output is null or empty, return an empty array.
-    return output || [];
+    // If the output is null or empty, return an empty string.
+    return output || "";
   }
 );
