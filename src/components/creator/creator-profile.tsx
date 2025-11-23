@@ -41,17 +41,14 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
         <Card className="rounded-2xl shadow-lg overflow-hidden">
           <div className="grid md:grid-cols-3">
             <div className="md:col-span-1 flex flex-col items-center justify-center p-8 bg-card/50 border-b md:border-b-0 md:border-r">
-              <div className="relative">
-                <Image
-                  src={creatorImageUrl}
-                  alt={creatorInfo.name}
-                  width={200}
-                  height={200}
-                  className="rounded-full border-4 border-primary shadow-lg"
-                  data-ai-hint="creator portrait male"
-                />
-                 <span className="absolute bottom-2 right-2 block h-6 w-6 rounded-full bg-green-500 border-2 border-card ring-2 ring-green-500" />
-              </div>
+              <Image
+                src={creatorImageUrl}
+                alt={creatorInfo.name}
+                width={200}
+                height={200}
+                className="rounded-full border-4 border-primary shadow-lg"
+                data-ai-hint="creator portrait male"
+              />
               <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>
               <p className="text-muted-foreground mt-1">{creatorInfo.dob} &bull; {creatorInfo.gender}</p>
               
