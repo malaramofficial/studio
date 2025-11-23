@@ -5,9 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle, Edit } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle, Edit, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { InstagramModal } from './instagram-modal';
+import { storage } from '@/lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useToast } from '@/hooks/use-toast';
 
 type CreatorProfileProps = {
   creatorInfo: CreatorInfo;
@@ -16,19 +19,56 @@ type CreatorProfileProps = {
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [creatorImageUrl, setCreatorImageUrl] = useState("https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg");
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchImage = async () => {
+      try {
+        const imageRef = ref(storage, 'creator-profile/profile-photo.jpg');
+        const url = await getDownloadURL(imageRef);
+        setCreatorImageUrl(url);
+      } catch (error: any) {
+        if (error.code === 'storage/object-not-found') {
+          // Use default image if not found in storage
+          setCreatorImageUrl("https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg");
+        } else {
+          console.error("Error fetching creator image:", error);
+        }
+      }
+    };
+    fetchImage();
+  }, []);
+
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCreatorImageUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setIsUploading(true);
+    const imageRef = ref(storage, 'creator-profile/profile-photo.jpg');
+
+    try {
+      await uploadBytes(imageRef, file);
+      const newUrl = await getDownloadURL(imageRef);
+      setCreatorImageUrl(newUrl);
+      toast({
+        title: "Success!",
+        description: "Your profile photo has been updated.",
+      });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: "There was a problem uploading your photo. Please try again.",
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -63,6 +103,7 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
                   height={200}
                   className="rounded-full border-4 border-primary shadow-lg"
                   data-ai-hint="creator portrait male"
+                  key={creatorImageUrl} // Force re-render on URL change
                 />
                  <span className="absolute bottom-2 right-2 block h-6 w-6 rounded-full bg-green-500 border-2 border-card ring-2 ring-green-500" />
               </div>
@@ -74,9 +115,11 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
                 onChange={handleFileChange} 
                 className="hidden" 
                 accept="image/*"
+                disabled={isUploading}
               />
-              <Button onClick={handlePhotoChangeClick} variant="outline" className="mt-4 gap-2">
-                <Edit className="h-4 w-4" /> Change Photo
+              <Button onClick={handlePhotoChangeClick} variant="outline" className="mt-4 gap-2" disabled={isUploading}>
+                {isUploading ? <Loader2 className="animate-spin" /> : <Edit className="h-4 w-4" />}
+                {isUploading ? 'Uploading...' : 'Change Photo'}
               </Button>
               <Button onClick={handleOpenModal} className="mt-2 gap-2">
                 <Instagram /> Instagram
