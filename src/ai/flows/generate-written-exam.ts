@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { syllabus } from '@/lib/syllabus';
 
 const GenerateWrittenExamInputSchema = z.object({
   subject: z.string().describe('The subject of the exam, e.g., "Physics".'),
@@ -20,19 +21,44 @@ export type GenerateWrittenExamInput = z.infer<typeof GenerateWrittenExamInputSc
 const GenerateWrittenExamOutputSchema = z.array(z.string()).describe('A list of 5 exam questions in Hindi.');
 
 export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<string[]> {
-  return generateWrittenExamFlow(input);
+  // Find the subject details from the syllabus
+  let subjectDetails = null;
+  for (const stream of syllabus) {
+    const foundSubject = stream.subjects.find(s => s.name === input.subject);
+    if (foundSubject) {
+      subjectDetails = foundSubject;
+      break;
+    }
+  }
+
+  // Pass subject details to the flow, or just the name if not found.
+  return generateWrittenExamFlow({
+    subject: input.subject,
+    subjectDetails: subjectDetails ? JSON.stringify(subjectDetails, null, 2) : 'Not available',
+  });
 }
+
+const FlowInputSchema = z.object({
+  subject: z.string(),
+  subjectDetails: z.string(),
+});
 
 const prompt = ai.definePrompt({
   name: 'generateSimpleWrittenExamPrompt',
-  input: {schema: GenerateWrittenExamInputSchema},
+  input: {schema: FlowInputSchema},
   output: {schema: GenerateWrittenExamOutputSchema},
   prompt: `You are an expert teacher creating a short exam for RBSE Class 12 Hindi medium students.
 The exam is for the subject: {{{subject}}}.
 
-CRITICAL: Generate exactly 5 short-answer questions in HINDI.
-The questions must be suitable for Hindi medium students.
-Your output must be a simple JSON array of strings, with each string being a question in Hindi. Do not output anything else.
+Here is the official syllabus for the subject. You MUST base your questions on the units and chapters provided in this syllabus.
+<syllabus>
+{{{subjectDetails}}}
+</syllabus>
+
+CRITICAL INSTRUCTIONS:
+1. Generate exactly 5 unique and new short-answer questions in HINDI every time. Do not repeat questions.
+2. The questions must be suitable for Hindi medium students and based on the provided syllabus.
+3. Your output must be a simple JSON array of strings, with each string being a question in Hindi. Do not output anything else.
 
 Example output for "भौतिक विज्ञान":
 [
@@ -47,7 +73,7 @@ Example output for "भौतिक विज्ञान":
 const generateWrittenExamFlow = ai.defineFlow(
   {
     name: 'generateSimpleWrittenExamFlow',
-    inputSchema: GenerateWrittenExamInputSchema,
+    inputSchema: FlowInputSchema,
     outputSchema: GenerateWrittenExamOutputSchema,
   },
   async input => {
