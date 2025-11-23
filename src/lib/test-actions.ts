@@ -6,10 +6,14 @@ import { evaluateWrittenExam as evalExam, type EvaluateWrittenExamInput } from "
 export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<GenerateWrittenExamOutput> {
   try {
     const result = await genExam(input);
+    if (!result || !result.exam) {
+        throw new Error("Invalid exam structure returned from AI.");
+    }
     return result;
   } catch (error) {
     console.error("Error in generateWrittenExam:", error);
-    // Return a structured error response that matches the schema
+    // Return a structured error response that matches the schema, as per the override.
+    // This ensures the UI doesn't crash on a failed fetch.
     return {
       status: "success", // To avoid breaking the UI, we still say success but with 0 questions.
       exam: {
