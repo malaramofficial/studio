@@ -13,8 +13,10 @@ type TestInterfaceProps = {
 };
 
 export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInterfaceProps) {
-  // Regex to find lines starting with "Question", "Q.", "Q#", or a number, while ignoring section headers.
-  const questions = examContent.split('\n').filter(line => /^\s*(?!section\s+[a-c])(question|q)?\s*#?\s*\d+[\.\)]?/i.test(line.trim()));
+  // Regex to find lines that start with a number followed by a period.
+  // This is a more robust way to find questions.
+  const questions = examContent.split('\n').filter(line => /^\d+\./.test(line.trim()));
+  
   const [answers, setAnswers] = useState<{ [key: string]: string }>(
     questions.reduce((acc, _, index) => ({ ...acc, [index]: "" }), {})
   );

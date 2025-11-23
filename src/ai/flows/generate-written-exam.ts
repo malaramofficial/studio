@@ -44,7 +44,7 @@ The exam should be in RBSE style, with the following sections:
 - Section B: Long answer questions
 - Section C: Very long answer questions
 
-CRITICAL: Each question must start with a number followed by a period (e.g., "1.", "2.", "3.").
+CRITICAL: Each question must start with a number followed by a period (e.g., "1.", "2.", "3."). This is a strict rule.
 
 Include clear instructions for each section and the marks for each question.
 
