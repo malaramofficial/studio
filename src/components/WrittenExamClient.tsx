@@ -7,6 +7,8 @@ import { Input } from "./ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./ui/select";
 import { Textarea } from "./ui/textarea";
 import { Loader2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Label } from "./ui/label";
 
 type Question = { id: string; section: string; marks: number; questionText: string, type: 'long' | 'short' | 'mcq', options?: string[] };
 
@@ -40,17 +42,16 @@ export default function WrittenExamClient() {
         })
         });
         const data = await res.json();
-        if (data.ok) {
-        setExam(data.exam);
-        setCurrentIndex(0);
-        setAnswers({});
-        setSubmitted(false);
-        setResult(null);
-        // start timer
-        const seconds = data.exam.durationMinutes * 60;
-        setTimer(seconds);
+        if (data.ok && data.exam?.questions?.length > 0) {
+            setExam(data.exam);
+            setCurrentIndex(0);
+            setAnswers({});
+            setSubmitted(false);
+            setResult(null);
+            const seconds = data.exam.durationMinutes * 60;
+            setTimer(seconds);
         } else {
-        throw new Error(data.error || 'Failed to generate exam');
+            throw new Error(data.error || 'Failed to generate exam or exam has no questions.');
         }
     } catch(e) {
         setError(e instanceof Error ? e.message : String(e));
@@ -98,7 +99,6 @@ export default function WrittenExamClient() {
     }
     setLoadingEvaluate(true);
     setError(null);
-    // prepare payload
     const payload = {
       examId: exam.examId,
       questions: exam.questions.map(q => ({ id: q.id, questionText: q.questionText, maxMarks: q.marks })),
@@ -193,7 +193,6 @@ export default function WrittenExamClient() {
       )
   }
 
-  // exam in-progress view
   const q = exam?.questions[currentIndex];
   const minutes = timer ? Math.floor(timer/60) : 0;
   const seconds = timer ? timer%60 : 0;
@@ -217,14 +216,30 @@ export default function WrittenExamClient() {
             <div className="mt-4 p-4 rounded-xl bg-muted/50">
             <div className="text-xs text-muted-foreground">Section {q.section} • {q.marks} marks</div>
             <div className="mt-2 font-medium whitespace-pre-wrap">{q.questionText}</div>
-
-            <Textarea
-                placeholder="अपना उत्तर यहाँ लिखें..."
-                value={answers[q.id] || ""}
-                onChange={(e)=>handleAnswerChange(q.id, e.target.value)}
-                className="w-full mt-3 text-base min-h-[140px]"
-                disabled={submitted}
-            />
+            
+            {q.type === 'mcq' && q.options ? (
+                 <RadioGroup
+                    value={answers[q.id] || ""}
+                    onValueChange={(value) => handleAnswerChange(q.id, value)}
+                    className="mt-4 space-y-2"
+                    disabled={submitted}
+                >
+                    {q.options.map((option, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                        <RadioGroupItem value={option} id={`${q.id}-option-${index}`} />
+                        <Label htmlFor={`${q.id}-option-${index}`}>{option}</Label>
+                    </div>
+                    ))}
+                </RadioGroup>
+            ) : (
+                <Textarea
+                    placeholder="अपना उत्तर यहाँ लिखें..."
+                    value={answers[q.id] || ""}
+                    onChange={(e)=>handleAnswerChange(q.id, e.target.value)}
+                    className="w-full mt-3 text-base min-h-[140px]"
+                    disabled={submitted}
+                />
+            )}
             </div>
 
             <div className="mt-4 flex items-center justify-between">

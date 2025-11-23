@@ -2,9 +2,9 @@
 'use server';
 
 import { generateWrittenExamV2 } from "@/ai/flows/generate-written-exam-v2";
-import type { GenerateWrittenExamOutputV2, QuestionSchema as GenkitQuestion } from "@/ai/flows/generate-written-exam-v2";
+import type { GenerateWrittenExamOutputV2 } from "@/ai/flows/generate-written-exam-v2";
 import { evaluateWrittenExam as evaluateExamFlow } from '@/ai/flows/evaluate-written-exam';
-import type { EvaluateWrittenExamOutput, EvaluateWrittenExamInput } from '@/aiflows/evaluate-written-exam';
+import type { EvaluateWrittenExamOutput, EvaluateWrittenExamInput } from '@/ai/flows/evaluate-written-exam';
 
 // Re-typing to match the client component's expectation, creating a separation layer.
 export type GeneratedExam = {
@@ -25,16 +25,22 @@ export type GeneratedExam = {
 
 export type EvaluationResult = EvaluateWrittenExamOutput;
 
-function transformGenkitQuestionToExamQuestion(q: GenkitQuestion, index: number) {
+function transformGenkitQuestionToExamQuestion(q: any, index: number) {
     // Crude section logic based on index for now
     let section = 'A';
     if (index > 5) section = 'B';
     if (index > 10) section = 'C';
 
+    // Assign marks based on question type
+    let marks = 5;
+    if (q.type === 'long') marks = 10;
+    if (q.type === 'mcq') marks = 2;
+
+
     return {
         id: `q${index + 1}`,
         section: section,
-        marks: 5, // Placeholder marks
+        marks: marks, 
         questionText: q.question,
         type: q.type,
         options: q.options,
@@ -43,28 +49,48 @@ function transformGenkitQuestionToExamQuestion(q: GenkitQuestion, index: number)
 }
 
 
-// These functions should run on server (Next.js route handlers).
 export async function generateWrittenExamGenkit(payload: {
-  stream: string; // stream is not used by the flow but let's keep it
+  stream: string;
   subject: string;
   chapters: string[];
   durationMinutes: number;
   totalMarks?: number;
 }): Promise<GeneratedExam> {
-  const result: GenerateWrittenExamOutputV2 = await generateWrittenExamV2({
-      subject: payload.subject,
-      chapters: payload.chapters,
-      marks: payload.totalMarks || 100,
-      durationMinutes: payload.durationMinutes,
-  });
+  try {
+      const result: GenerateWrittenExamOutputV2 = await generateWrittenExamV2({
+          subject: payload.subject,
+          chapters: payload.chapters,
+          marks: payload.totalMarks || 100,
+          durationMinutes: payload.durationMinutes,
+      });
 
-  return {
-    examId: "exam_" + Date.now(),
-    title: `${result.exam.subject} - Sample Paper`,
-    durationMinutes: payload.durationMinutes,
-    totalMarks: payload.totalMarks ?? 100,
-    questions: result.exam.questions.map(transformGenkitQuestionToExamQuestion),
-  };
+      if (!result || !result.exam) {
+        throw new Error("Invalid response from exam generation flow");
+      }
+
+      return {
+        examId: "exam_" + Date.now(),
+        title: `${result.exam.subject} - Sample Paper`,
+        durationMinutes: payload.durationMinutes,
+        totalMarks: payload.totalMarks ?? 100,
+        questions: result.exam.questions.map(transformGenkitQuestionToExamQuestion),
+      };
+  } catch (error) {
+      console.error("Error in generateWrittenExamGenkit, returning placeholder:", error);
+      // Fallback to placeholder if Genkit fails
+      return {
+        examId: "exam_" + Date.now(),
+        title: `${payload.subject} - Sample Paper (Fallback)`,
+        durationMinutes: payload.durationMinutes,
+        totalMarks: payload.totalMarks ?? 100,
+        questions: [
+          { id: "q1", section: "A", marks: 5, type: 'short', questionText: "Define electric field with example." },
+          { id: "q2", section: "A", marks: 5, type: 'short', questionText: "State Ohm's law." },
+          { id: "q3", section: "B", marks: 10, type: 'long', questionText: "Explain electromagnetic induction with diagram." },
+          { id: "q4", section: "C", marks: 15, type: 'long', questionText: "Describe photoelectric effect and its applications." },
+        ],
+      };
+  }
 }
 
 export async function evaluateWrittenExamGenkit(payload: {
@@ -80,7 +106,6 @@ export async function evaluateWrittenExamGenkit(payload: {
   
     const result = await evaluateExamFlow(evaluationInput);
     
-    // The flow output matches the client expectation, but we need to add IDs back
     const perQuestionWithId = result.perQuestion.map((pq, index) => ({
         ...pq,
         id: payload.questions[index].id,

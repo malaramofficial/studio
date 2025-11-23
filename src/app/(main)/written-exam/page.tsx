@@ -1,3 +1,4 @@
+// app/(main)/written-exam/page.tsx
 import dynamic from "next/dynamic";
 const WrittenExamClient = dynamic(() => import("../../../components/WrittenExamClient"), { ssr: false });
 
