@@ -38,7 +38,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function TestGenerationFormV2() {
+export function ExamForm() {
   const [isPending, startTransition] = useTransition();
   const [examOutput, setExamOutput] = useState<GenerateWrittenExamOutputV2 | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluateWrittenExamOutput | null>(null);
