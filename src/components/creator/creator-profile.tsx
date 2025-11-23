@@ -9,7 +9,7 @@ import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, Use
 import { useState, useRef, useEffect } from 'react';
 import { InstagramModal } from './instagram-modal';
 import { storage } from '@/lib/firebase';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, getDownloadURL } from 'firebase/storage';
 import { useToast } from '@/hooks/use-toast';
 
 type CreatorProfileProps = {
@@ -20,7 +20,6 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [creatorImageUrl, setCreatorImageUrl] = useState("https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop");
   const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
