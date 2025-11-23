@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle } from 'lucide-react';
-import { useState } from 'react';
+import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle, Edit } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { InstagramModal } from './instagram-modal';
 
 type CreatorProfileProps = {
@@ -15,10 +15,26 @@ type CreatorProfileProps = {
 
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const creatorImageUrl = "https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg";
-  
+  const [creatorImageUrl, setCreatorImageUrl] = useState("https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCreatorImageUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handlePhotoChangeClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const infoSections = [
     { icon: UserCircle, label: "Role", value: creatorInfo.role },
@@ -52,7 +68,17 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
               </div>
               <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>
               <p className="text-muted-foreground mt-1">{creatorInfo.dob} &bull; {creatorInfo.gender}</p>
-              <Button onClick={handleOpenModal} className="mt-6 gap-2">
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+                accept="image/*"
+              />
+              <Button onClick={handlePhotoChangeClick} variant="outline" className="mt-4 gap-2">
+                <Edit className="h-4 w-4" /> Change Photo
+              </Button>
+              <Button onClick={handleOpenModal} className="mt-2 gap-2">
                 <Instagram /> Instagram
               </Button>
             </div>
