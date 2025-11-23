@@ -1,0 +1,195 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict security model that separates public, read-only content from private, user-owned data.
+ * The primary goal is to allow any user (authenticated or not) to browse educational content like the syllabus and available exams,
+ * while ensuring that a user's personal data, such as their profile and exam attempts, is accessible only by them.
+ *
+ * Data Structure: The data is organized into two main categories:
+ * 1. Top-level public collections: `/exams`, `/syllabus`, and `/meta` contain globally accessible, read-only content.
+ * 2. User-specific data trees: The `/users/{userId}` path is the root for all data private to a specific user, including their
+ *    profile, exam attempts (`writtenExamAttempts`), and individual answers (`answers`). This structure inherently uses path-based
+ *    security for efficiency and clarity.
+ *
+ * Key Security Decisions:
+ * - User data is private: All documents under `/users/{userId}` are strictly controlled by the matching user.
+ * - User listing is disallowed: To protect user privacy and prevent data scraping, it is not possible to list all documents in the `/users` collection.
+ * - Public content is read-only: Collections like `/exams` and `/syllabus` are publicly readable to allow for a seamless browsing experience,
+ *   but are locked down against writes from any client. Modifications must be done via a trusted backend/admin environment.
+ * - Default secure posture: Write access is denied by default and only explicitly granted based on ownership.
+ *
+ * Denormalization for Authorization: This ruleset primarily relies on path-based authorization (`/users/{userId}/...`), which is the most
+ * performant method. For user-created documents within their private tree, we enforce that an internal `userId` field is set on creation
+ * and made immutable on updates. This ensures relational integrity without costly `get()` calls.
+ *
+ * Structural Segregation: Private user data (exam attempts, answers) is strictly segregated into user-specific subcollections. Public
+ * data (the list of exams, the syllabus) exists in separate top-level collections. This clear separation simplifies rule logic and
+ * makes queries more secure and efficient.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for improved readability and reuse.
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the authenticated user's UID matches the provided userId.
+     * This is the foundation of the user-ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks for ownership on an existing document. Used for update/delete.
+     * This prevents modifying or deleting documents that do not exist.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+    
+    /**
+     * Validates that the user is creating their own user document and
+     * that the document's internal `id` field matches the path `userId`.
+     */
+    function isCreatingOwnUserDoc(userId) {
+      return isOwner(userId) && request.resource.data.id == userId;
+    }
+    
+    /**
+     * Validates that a user is creating a subcollection document where the
+     * internal `userId` field correctly references them.
+     */
+    function isCreatingOwnSubDoc(userId) {
+      return isOwner(userId) && request.resource.data.userId == userId;
+    }
+    
+    /**
+     * Enforces immutability of the internal `userId` field during updates
+     * to maintain relational integrity.
+     */
+    function isUserIdImmutable() {
+      return request.resource.data.userId == resource.data.id;
+    }
+    
+    /**
+     * Enforces immutability of the internal `id` field for a root user document.
+     */
+    function isUserDocIdImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * @description Manages user profile documents.
+     * @path /users/{userId}
+     * @allow (get, update) A signed-in user accessing their own profile document.
+     * @allow (create) A new user creating their own profile document for the first time.
+     * @deny (list) Anyone attempting to list all users in the application.
+     * @deny (get, update, delete) A user attempting to access another user's profile.
+     * @principle Restricts access to a user's own data tree and prevents user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isCreatingOwnUserDoc(userId);
+      allow update: if isExistingOwner(userId) && isUserDocIdImmutable();
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Manages a user's exam attempt records.
+       * @path /users/{userId}/writtenExamAttempts/{writtenExamAttemptId}
+       * @allow (get, list, create, update, delete) A signed-in user managing their own exam attempts.
+       * @deny (get, list, create, update, delete) A user trying to access another user's exam attempts.
+       * @principle Enforces strict ownership for all user-generated content within their data tree.
+       */
+      match /writtenExamAttempts/{writtenExamAttemptId} {
+        allow get: if isOwner(userId);
+        allow list: if isOwner(userId);
+        allow create: if isCreatingOwnSubDoc(userId);
+        allow update: if isExistingOwner(userId) && isUserIdImmutable();
+        allow delete: if isExistingOwner(userId);
+
+        /**
+         * @description Manages a user's answers within a specific exam attempt.
+         * @path /users/{userId}/writtenExamAttempts/{writtenExamAttemptId}/answers/{answerId}
+         * @allow (get, list, create, update, delete) A signed-in user managing their own answers.
+         * @deny (get, list, create, update, delete) A user trying to access another user's answers.
+         * @principle Path-based ownership is inherited by subcollections, securing nested data.
+         */
+        match /answers/{answerId} {
+          allow get: if isOwner(userId);
+          allow list: if isOwner(userId);
+          allow create: if isOwner(userId);
+          allow update: if isExistingOwner(userId);
+          allow delete: if isExistingOwner(userId);
+        }
+      }
+    }
+
+    /**
+     * @description Manages exam definitions. These are public to browse but not writable by clients.
+     * @path /exams/{examId}
+     * @allow (get, list) Any user (signed-in or anonymous) reading exam details.
+     * @deny (create, update, delete) Any client attempting to modify exam data.
+     * @principle Public content is read-only. Writes should be handled by a trusted backend or admin SDK.
+     */
+    match /exams/{examId} {
+      allow get: if true;
+      allow list: if true;
+      // CRITICAL: Cannot implement owner-only writes. The 'Exam' entity is missing an 'ownerId' or 'creatorId' field.
+      allow create: if false; // TODO: Add admin/creator validation once the schema is updated with an ownership field.
+      allow update: if false; // TODO: Add admin/creator validation once the schema is updated with an ownership field.
+      allow delete: if false; // TODO: Add admin/creator validation once the schema is updated with an ownership field.
+
+      /**
+       * @description Manages the questions associated with a specific exam.
+       * @path /exams/{examId}/questions/{questionId}
+       * @allow (get, list) Any user (signed-in or anonymous) reading questions for an exam.
+       * @deny (create, update, delete) Any client attempting to modify questions.
+       * @principle Security rules for public content are inherited by subcollections.
+       */
+      match /questions/{questionId} {
+        allow get: if true;
+        allow list: if true;
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    /**
+     * @description Manages syllabus data. This content is public and read-only for all users.
+     * @path /syllabus/{stream}/{subject}/chapters/{chapterId}/topics/{topicId}
+     * @allow (get, list) Any user (signed-in or anonymous) reading syllabus information.
+     * @deny (create, update, delete) Any client attempting to modify the syllabus.
+     * @principle Core application data should be immutable from the client-side to ensure integrity.
+     */
+    match /syllabus/{stream}/{subject}/chapters/{chapterId}/topics/{topicId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Manages application creator metadata.
+     * @path /meta/creator/{creatorId}
+     * @allow (get, list) Any user (signed-in or anonymous) reading creator info.
+     * @deny (create, update, delete) Any client attempting to modify creator info.
+     * @principle Singleton metadata is treated as public, read-only content.
+     */
+    match /meta/creator/{creatorId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

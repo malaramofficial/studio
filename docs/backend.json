@@ -1,0 +1,456 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the Rajasthan AI Scholar application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "User's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "profilePicture": {
+          "type": "string",
+          "description": "URL to the user's profile picture.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
+    },
+    "Exam": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Exam",
+      "type": "object",
+      "description": "Represents an exam generated for a specific subject and chapters.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Exam entity."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject of the exam (e.g., Physics, Chemistry)."
+        },
+        "chapters": {
+          "type": "array",
+          "description": "List of chapter IDs included in the exam.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "marks": {
+          "type": "number",
+          "description": "Total marks for the exam."
+        },
+        "durationMinutes": {
+          "type": "number",
+          "description": "Duration of the exam in minutes."
+        },
+        "questions": {
+          "type": "array",
+          "description": "List of question IDs included in the exam.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "subject",
+        "chapters",
+        "marks",
+        "durationMinutes",
+        "questions"
+      ]
+    },
+    "Question": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Question",
+      "type": "object",
+      "description": "Represents a question in an exam.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Question entity."
+        },
+        "examId": {
+          "type": "string",
+          "description": "Reference to Exam. (Relationship: Exam 1:N Question)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The question text."
+        },
+        "marks": {
+          "type": "number",
+          "description": "Marks allocated for the question."
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of question (e.g., short answer, long answer)."
+        }
+      },
+      "required": [
+        "id",
+        "examId",
+        "text",
+        "marks",
+        "type"
+      ]
+    },
+    "WrittenExamAttempt": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WrittenExamAttempt",
+      "type": "object",
+      "description": "Represents a user's attempt at a written exam.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WrittenExamAttempt entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N WrittenExamAttempt)"
+        },
+        "examId": {
+          "type": "string",
+          "description": "Reference to Exam. (Relationship: Exam 1:N WrittenExamAttempt)"
+        },
+        "submissionTime": {
+          "type": "string",
+          "description": "Timestamp of when the exam was submitted.",
+          "format": "date-time"
+        },
+        "answers": {
+          "type": "array",
+          "description": "List of answer IDs for the questions.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "examId",
+        "submissionTime",
+        "answers"
+      ]
+    },
+    "Answer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Answer",
+      "type": "object",
+      "description": "Represents a user's answer to a specific question.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Answer entity."
+        },
+        "writtenExamAttemptId": {
+          "type": "string",
+          "description": "Reference to WrittenExamAttempt. (Relationship: WrittenExamAttempt 1:N Answer)"
+        },
+        "questionId": {
+          "type": "string",
+          "description": "Reference to Question. (Relationship: Question 1:N Answer)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The answer text provided by the user."
+        },
+        "marksObtained": {
+          "type": "number",
+          "description": "Marks obtained for this answer."
+        },
+        "feedback": {
+          "type": "string",
+          "description": "Feedback from the evaluation for this answer."
+        }
+      },
+      "required": [
+        "id",
+        "writtenExamAttemptId",
+        "questionId",
+        "text"
+      ]
+    },
+    "Syllabus": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Syllabus",
+      "type": "object",
+      "description": "Represents a syllabus entry for a specific stream, subject, chapter, and topic.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Syllabus entity."
+        },
+        "stream": {
+          "type": "string",
+          "description": "The stream (e.g., Science, Commerce, Arts)."
+        },
+        "subject": {
+          "type": "string",
+          "description": "The subject (e.g., Physics, Chemistry, Math)."
+        },
+        "chapter": {
+          "type": "string",
+          "description": "The chapter name."
+        },
+        "topics": {
+          "type": "array",
+          "description": "List of topics covered in the chapter.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "stream",
+        "subject",
+        "chapter",
+        "topics"
+      ]
+    },
+    "Creator": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Creator",
+      "type": "object",
+      "description": "Represents the creator of the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Creator entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Creator's name."
+        },
+        "dob": {
+          "type": "string",
+          "description": "Creator's date of birth."
+        },
+        "gender": {
+          "type": "string",
+          "description": "Creator's gender."
+        },
+        "location": {
+          "type": "string",
+          "description": "Creator's location."
+        },
+        "education": {
+          "type": "string",
+          "description": "Creator's education."
+        },
+        "interests": {
+          "type": "array",
+          "description": "Creator's interests.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "beliefs": {
+          "type": "array",
+          "description": "Creator's beliefs.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "profession": {
+          "type": "string",
+          "description": "Creator's profession."
+        },
+        "hobbies": {
+          "type": "array",
+          "description": "Creator's hobbies.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "instagram": {
+          "type": "string",
+          "description": "Creator's Instagram handle."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "dob",
+        "gender",
+        "location",
+        "education",
+        "interests",
+        "beliefs",
+        "profession",
+        "hobbies",
+        "instagram"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile data. Path-based ownership ensures only the user can access their own data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/exams/{examId}",
+        "definition": {
+          "entityName": "Exam",
+          "schema": {
+            "$ref": "#/backend/entities/Exam"
+          },
+          "description": "Stores exam details.  The QAP here is ensuring unauthorized users can't modify exams.",
+          "params": [
+            {
+              "name": "examId",
+              "description": "The unique identifier of the exam."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/exams/{examId}/questions/{questionId}",
+        "definition": {
+          "entityName": "Question",
+          "schema": {
+            "$ref": "#/backend/entities/Question"
+          },
+          "description": "Stores questions associated with an exam.",
+          "params": [
+            {
+              "name": "examId",
+              "description": "The unique identifier of the exam."
+            },
+            {
+              "name": "questionId",
+              "description": "The unique identifier of the question."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}",
+        "definition": {
+          "entityName": "WrittenExamAttempt",
+          "schema": {
+            "$ref": "#/backend/entities/WrittenExamAttempt"
+          },
+          "description": "Stores a user's attempt at a written exam. Path-based ownership ensures only the user can access their own attempts.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "writtenExamAttemptId",
+              "description": "The unique identifier of the written exam attempt."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}/answers/{answerId}",
+        "definition": {
+          "entityName": "Answer",
+          "schema": {
+            "$ref": "#/backend/entities/Answer"
+          },
+          "description": "Stores a user's answer to a specific question within a written exam attempt.  Path-based ownership ensures only the user can access their own answers.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "writtenExamAttemptId",
+              "description": "The unique identifier of the written exam attempt."
+            },
+            {
+              "name": "answerId",
+              "description": "The unique identifier of the answer."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/syllabus/{stream}/{subject}/chapters/{chapterId}/topics/{topicId}",
+        "definition": {
+          "entityName": "Syllabus",
+          "schema": {
+            "$ref": "#/backend/entities/Syllabus"
+          },
+          "description": "Stores syllabus entries organized by stream, subject, chapter, and topics.  The QAP here is ensuring unauthorized users can't modify the syllabus.",
+          "params": [
+            {
+              "name": "stream",
+              "description": "The stream (e.g., Science, Commerce, Arts)."
+            },
+            {
+              "name": "subject",
+              "description": "The subject (e.g., Physics, Chemistry, Math)."
+            },
+            {
+              "name": "chapterId",
+              "description": "The unique identifier of the chapter."
+            },
+            {
+              "name": "topicId",
+              "description": "The unique identifier of the topic."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/meta/creator/{creatorId}",
+        "definition": {
+          "entityName": "Creator",
+          "schema": {
+            "$ref": "#/backend/entities/Creator"
+          },
+          "description": "Stores creator information.",
+          "params": [
+            {
+              "name": "creatorId",
+              "description": "The unique identifier of the creator."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to be secure, scalable, and debuggable, adhering to the core design principles. Authorization Independence is achieved by denormalizing authorization data (e.g., the `members` map for collaborative data) into subcollections. Structural Segregation is maintained by keeping data with similar security needs in the same collections. Access Modeling uses path-based ownership for private data and membership maps for collaborative data. Invariants such as timestamps, ownership, and denormalized data are enforced via security rules.\n\nSpecifically:\n\n*   **Users:** User data is stored under `/users/{userId}` with path-based ownership, providing private access.\n*   **Exams & Questions:** Exams are stored in `/exams/{examId}`.  Questions are nested under exams at `/exams/{examId}/questions/{questionId}`. This establishes a clear 1:N relationship.\n*   **Written Exam Attempts & Answers:** Written exam attempts are stored under `/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}` and related answers under `/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}/answers/{answerId}`.  This creates a nested structure that reflects the user's attempts and their corresponding answers, and enables secure list operations.\n*   **Syllabus:** Syllabus entries are stored in a hierarchical structure `/syllabus/{stream}/{subject}/chapters/{chapterId}/topics/{topicId}` to organize content for easy querying and filtering.  The QAP here is ensuring unauthorized users can't modify the syllabus.  The lack of any user write access required here makes this simple.\n*   **Creator:** Creator information is stored in `/meta/creator/{creatorId}`. This allows the app to quickly retrieve creator data, and is a singleton.\n\nThis structure facilitates simple, robust security rules.  For example, only the user can read/write their own `/users/{userId}` document and associated data, and only admins can modify the syllabus."
+  }
+}
