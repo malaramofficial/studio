@@ -105,17 +105,11 @@ export default function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {progressPercentage > 0 ? (
+          {progressPercentage > 0 && (
             <div>
               <Progress value={progressPercentage} className="w-full" />
               <p className="text-right text-sm text-muted-foreground mt-2">{progressPercentage}% पूरा हुआ</p>
             </div>
-          ) : (
-             <Button asChild size="lg" className="w-full">
-                <Link href="/syllabus">
-                    आज ही अपनी सीखने की यात्रा शुरू करें!
-                </Link>
-             </Button>
           )}
         </CardContent>
       </Card>
