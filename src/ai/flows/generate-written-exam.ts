@@ -47,6 +47,10 @@ const prompt = ai.definePrompt({
   name: 'generateSimpleWrittenExamPrompt',
   input: {schema: FlowInputSchema},
   output: {schema: GenerateWrittenExamOutputSchema},
+  config: {
+    // Set a higher temperature to encourage creativity and reduce repetition.
+    temperature: 1,
+  },
   prompt: `You are an expert teacher creating a short exam for RBSE Class 12 Hindi medium students.
 The exam is for the subject: {{{subject}}}.
 
@@ -56,7 +60,7 @@ Here is the official syllabus for the subject. You MUST base your questions on t
 </syllabus>
 
 CRITICAL INSTRUCTIONS:
-1. Generate exactly 5 unique and new short-answer questions in HINDI every time. Do not repeat questions.
+1. Generate exactly 5 unique and completely new short-answer questions in HINDI every single time. Do not repeat questions from previous requests.
 2. The questions must be suitable for Hindi medium students and based on the provided syllabus.
 3. Your output must be a simple JSON array of strings, with each string being a question in Hindi. Do not output anything else.
 
