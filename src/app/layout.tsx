@@ -4,8 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'Rajasthan AI Scholar',
-  description: 'AI-powered learning for RBSE Class 12 students.',
+  title: 'MaruVidya AI',
+  description: 'AI-powered learning with MaruVidya AI for RBSE Class 12 students.',
 };
 
 export default function RootLayout({

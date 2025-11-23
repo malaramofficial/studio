@@ -16,7 +16,7 @@ export function AppHeader() {
   // Mock user data for display purposes
   const user = {
     name: "विद्यार्थी",
-    email: "student@rajasthan.ai",
+    email: "student@maruvidya.ai",
   };
 
   return (
@@ -28,7 +28,7 @@ export function AppHeader() {
           className="flex items-center gap-2 font-headline text-lg font-semibold text-primary"
         >
           <GraduationCap className="h-6 w-6" />
-          <span className="hidden sm:inline-block">Rajasthan AI Scholar</span>
+          <span className="hidden sm:inline-block">MaruVidya AI</span>
         </Link>
       </div>
 
