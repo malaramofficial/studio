@@ -16,7 +16,7 @@ type CreatorProfileProps = {
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const creatorImageUrl = "https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=800&auto=format&fit=crop";
+  const creatorImageUrl = "https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop";
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -40,7 +40,7 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
         <Card className="rounded-2xl shadow-lg overflow-hidden">
           <div className="grid md:grid-cols-3">
             <div className="md:col-span-1 flex flex-col items-center justify-center p-8 bg-card/50 border-b md:border-b-0 md:border-r">
-              <div className="w-[200px] h-[200px] rounded-full border-4 border-primary shadow-lg overflow-hidden">
+              <div className="w-[200px] h-[200px] rounded-2xl border-4 border-primary shadow-lg overflow-hidden">
                 <Image
                   src={creatorImageUrl}
                   alt={creatorInfo.name}
