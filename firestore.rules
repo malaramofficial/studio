@@ -41,7 +41,7 @@ service cloud.firestore {
     function isAdmin() {
       // THIS IS A PLACEHOLDER - A real app would have a more robust role system.
       // For now, we will assume a single hardcoded admin UID.
-      return isSignedIn() && request.auth.uid == "sS9gXNTrbYV6D19T1d6E82F7i7E2"; // Replace with your actual Admin UID
+      return isSignedIn() && request.auth.uid == "7MYRbJ5UL1fSuhtlQ9KC67mf9x43"; // Replace with your actual Admin UID
     }
 
     /**
