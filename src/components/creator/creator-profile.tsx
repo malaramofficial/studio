@@ -8,6 +8,7 @@ import { Button } from '../ui/button';
 import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import { InstagramModal } from './instagram-modal';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type CreatorProfileProps = {
   creatorInfo: CreatorInfo;
@@ -16,7 +17,7 @@ type CreatorProfileProps = {
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const creatorImageUrl = "https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg";
+  const creatorImage = PlaceHolderImages.find(img => img.id === 'creator-profile-pic')!;
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -42,12 +43,12 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
             <div className="md:col-span-1 flex flex-col items-center justify-center p-8 bg-card/50 border-b md:border-b-0 md:border-r">
               <div className="w-[200px] h-[200px] rounded-2xl border-4 border-primary shadow-lg overflow-hidden">
                 <Image
-                  src={creatorImageUrl}
+                  src={creatorImage.imageUrl}
                   alt={creatorInfo.name}
                   width={200}
                   height={200}
                   className="w-full h-full object-cover"
-                  data-ai-hint="creator portrait male"
+                  data-ai-hint={creatorImage.imageHint}
                 />
               </div>
               <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>

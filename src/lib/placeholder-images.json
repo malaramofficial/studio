@@ -41,6 +41,12 @@
       "description": "Headphones on a book, representing audio learning.",
       "imageUrl": "https://images.unsplash.com/photo-1571302171913-c4cecd3e4780?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxhdWRpbyUyMGJvb2t8ZW58MHx8fHwxNzYzODkwNjgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "audio book"
+    },
+    {
+      "id": "creator-profile-pic",
+      "description": "The profile picture of the creator, Mala Ram.",
+      "imageUrl": "https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg",
+      "imageHint": "creator portrait male"
     }
   ]
 }
