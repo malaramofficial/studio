@@ -1,0 +1,98 @@
+'use client';
+
+import type { CreatorInfo } from '@/ai/flows/get-creator-info';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Button } from '../ui/button';
+import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, Wand } from 'lucide-react';
+import { useState } from 'react';
+import { InstagramModal } from './instagram-modal';
+import { getCreatorInstagram } from '@/ai/flows/get-creator-instagram';
+
+type CreatorProfileProps = {
+  creatorInfo: CreatorInfo;
+};
+
+export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const creatorImage = PlaceHolderImages.find((img) => img.id === 'feature-creator')!;
+  
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
+  const infoSections = [
+    { icon: MapPin, label: "Location", value: creatorInfo.location },
+    { icon: Briefcase, label: "Profession", value: creatorInfo.profession },
+    { icon: GraduationCap, label: "Education", value: creatorInfo.education },
+  ];
+
+  const tagSections = [
+      { icon: Dna, label: "Interests", tags: creatorInfo.interests },
+      { icon: Lightbulb, label: "Beliefs", tags: creatorInfo.beliefs },
+      { icon: Heart, label: "Hobbies", tags: creatorInfo.hobbies },
+  ];
+
+  return (
+    <>
+      <Card className="rounded-2xl shadow-lg overflow-hidden">
+        <div className="grid md:grid-cols-3">
+          <div className="md:col-span-1 flex flex-col items-center justify-center p-8 bg-card/50 border-b md:border-b-0 md:border-r">
+            <div className="relative">
+              <Image
+                src={creatorImage.imageUrl}
+                alt={creatorInfo.name}
+                width={200}
+                height={200}
+                className="rounded-full border-4 border-primary shadow-lg"
+                data-ai-hint={creatorImage.imageHint}
+              />
+               <span className="absolute bottom-2 right-2 block h-6 w-6 rounded-full bg-green-500 border-2 border-card ring-2 ring-green-500" />
+            </div>
+            <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>
+            <p className="text-muted-foreground mt-1">{creatorInfo.dob} &bull; {creatorInfo.gender}</p>
+            <Button onClick={handleOpenModal} className="mt-6 gap-2">
+              <Instagram /> Instagram
+            </Button>
+          </div>
+          <div className="md:col-span-2 p-8">
+            <h2 className="font-headline text-2xl font-bold mb-6">About Me</h2>
+            
+            <div className="space-y-6">
+                {infoSections.map(section => (
+                    <div key={section.label} className="flex items-start gap-4">
+                        <div className="flex-shrink-0 mt-1">
+                            <section.icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-muted-foreground">{section.label}</h3>
+                            <p className="text-lg">{section.value}</p>
+                        </div>
+                    </div>
+                ))}
+
+                {tagSections.map(section => (
+                    <div key={section.label} className="flex items-start gap-4">
+                        <div className="flex-shrink-0 mt-1">
+                            <section.icon className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-muted-foreground mb-2">{section.label}</h3>
+                            <div className="flex flex-wrap gap-2">
+                            {section.tags.map((tag) => (
+                                <Badge key={tag} variant="secondary" className="px-3 py-1 text-sm">{tag}</Badge>
+                            ))}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+          </div>
+        </div>
+      </Card>
+      <InstagramModal isOpen={isModalOpen} onClose={handleCloseModal} handle={creatorInfo.instagram} redirectUrl={`https://instagram.com/${creatorInfo.instagram}`} />
+    </>
+  );
+}

@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "continue-learning",
+      "description": "A student studying at a desk with books.",
+      "imageUrl": "https://images.unsplash.com/photo-1596247290824-e9f12b8c574f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxzdHVkZW50JTIwc3R1ZHlpbmd8ZW58MHx8fHwxNzYzODQ3NDEzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "student studying"
+    },
+    {
+      "id": "feature-syllabus",
+      "description": "An open book on a table, representing the syllabus.",
+      "imageUrl": "https://images.unsplash.com/photo-1585896452649-6ede5e126800?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxvcGVuJTIwYm9va3xlbnwwfHx8fDE3NjM4NzQxMzd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "open book"
+    },
+    {
+      "id": "feature-tests",
+      "description": "A person writing an exam with a pen on paper.",
+      "imageUrl": "https://images.unsplash.com/photo-1758270705799-12efda48d4f4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3cml0aW5nJTIwdGVzdHxlbnwwfHx8fDE3NjM4NDU5Nzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "writing test"
+    },
+    {
+      "id": "feature-ai-tutor",
+      "description": "A friendly robot interacting with a student.",
+      "imageUrl": "https://images.unsplash.com/photo-1538491247542-5da27794bc65?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyb2JvdCUyMHR1dG9yfGVufDB8fHx8MTc2Mzc5Mjc0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "robot tutor"
+    },
+    {
+      "id": "feature-creator",
+      "description": "A professional portrait of the app creator.",
+      "imageUrl": "https://images.unsplash.com/photo-1637396988692-8e75074fd497?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjcmVhdG9yJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzYzODg2NzIzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "creator portrait"
+    },
+    {
+      "id": "ad-banner",
+      "description": "A wide, abstract banner for promotional content.",
+      "imageUrl": "https://images.unsplash.com/photo-1706791722468-1e52d64bd3e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGJhbm5lcnxlbnwwfHx8fDE3NjM4NDE3MTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract banner"
+    }
+  ]
 }
