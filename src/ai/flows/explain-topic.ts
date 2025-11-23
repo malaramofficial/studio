@@ -25,9 +25,8 @@ export type ExplainTopicOutput = z.infer<typeof ExplainTopicOutputSchema>;
 
 
 export async function explainTopic(input: ExplainTopicInput): Promise<ExplainTopicOutput> {
-  const isGreeting = /^(hi|hello|namaste|नमस्ते|सलाम|你好|hola|सुप्रभात|good morning|शुभ रात्रि|good night)/i.test(input.topic.trim());
-  const asksAboutCreator = /(creator|owner|maker|founder|developer|designer|बनाने वाले|निर्माता|मालिक|क्रिएटर|किसने बनाया)/i.test(input.topic);
   const asksAboutInstagram = /(instagram|insta)/i.test(input.topic);
+  const asksAboutCreator = /(creator|owner|maker|founder|developer|designer|बनाने वाले|निर्माता|मालिक|क्रिएटर|किसने बनाया)/i.test(input.topic);
 
   if (asksAboutInstagram && asksAboutCreator) {
     const instagramInfo = await getCreatorInstagram();
@@ -35,6 +34,17 @@ export async function explainTopic(input: ExplainTopicInput): Promise<ExplainTop
         explanation: "आप यहाँ क्लिक करके निर्माता के Instagram प्रोफ़ाइल पर जा सकते हैं:",
         uiAction: instagramInfo.uiAction,
     };
+  }
+  
+  if (asksAboutCreator) {
+    // Let the main flow handle creator questions based on the detailed system prompt
+    return explainTopicFlow(input);
+  }
+
+  const isGreeting = /^(hi|hello|namaste|नमस्ते|सलाम|你好|hola|सुप्रभात|good morning|शुभ रात्रि|good night|kya haal hai|कैसे हो)/i.test(input.topic.trim());
+  if (isGreeting) {
+    // Handle greetings directly for a more natural response.
+    return explainTopicFlow(input);
   }
 
   return explainTopicFlow(input);
@@ -60,11 +70,14 @@ const prompt = ai.definePrompt({
 **Creator Information (Mandatory):**
 When asked about your creator ("आपको किसने बनाया?", "Who is the owner?", "मालिक कौन है?", "इस ऐप का क्रिएटर कौन है?"), you MUST provide the following details clearly and in a friendly tone:
 - **Creator's Name:** Mala Ram
+- **Born:** 10 Oct 2001
 - **Role:** Developer, Designer, and Idea Owner
-- **Details:** Mala Ram was born on 10 Oct 2001. He is a tech learner and developer with interests in Science, Technology, Machines, Coding, and Psychology. He believes in logic and independent thinking and is not associated with any religion or caste identity.
-- **Instagram:** @malaramofficial
+- **Profession:** Tech learner and developer
+- **Interests:** Science, Technology, Machines, Coding, and Psychology.
+- **Beliefs:** Believes in logic and independent thinking; not associated with any religion or caste identity.
 
-If the user asks for a link to the profile, you should respond that the app will show a button to open the profile, do not provide a URL. Example: "आप निर्माता के Instagram प्रोफ़ाइल पर जाने के लिए नीचे दिए गए बटन पर क्लिक कर सकते हैं।"
+If the user asks for their social profile or Instagram, you should respond that the app will show a button to open the profile. Do not provide a URL.
+Example: "आप निर्माता के Instagram प्रोफ़ाइल पर जाने के लिए नीचे दिए गए बटन पर क्लिक कर सकते हैं।" and set the uiAction to SHOW_INSTAGRAM_BUTTON.
 
 Now, engage with the user based on their message. If it's a study topic, explain it for an RBSE Class 12 student in simple Hindi.`,
   prompt: `Topic: {{{topic}}}`,
@@ -79,8 +92,12 @@ const explainTopicFlow = ai.defineFlow(
   async input => {
     const {output} = await prompt(input);
     if (!output) {
-      return { explanation: "माफ़ कीजिए, मुझे कुछ समझ नहीं आया। क्या आप अपना सवाल दोहरा सकते हैं?" };
+      return { explanation: "माफ़ कीजिए, मुझे कुछ समझ नहीं आया। क्या आप अपना सवाल दोहरा सकते हैं?", uiAction: 'NONE' };
     }
-    return output;
+    // Ensure uiAction is set, defaulting to 'NONE' if not provided by the model.
+    return {
+      explanation: output.explanation,
+      uiAction: output.uiAction || 'NONE',
+    };
   }
 );

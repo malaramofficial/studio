@@ -85,11 +85,11 @@ export function ChatInterface() {
                 </AvatarFallback>
               </Avatar>
             )}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 items-start">
               <div
                 className={`max-w-xl rounded-2xl px-4 py-3 ${
                   message.role === "user"
-                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    ? "bg-primary text-primary-foreground rounded-br-none self-end"
                     : "bg-muted text-foreground rounded-bl-none"
                 }`}
               >
