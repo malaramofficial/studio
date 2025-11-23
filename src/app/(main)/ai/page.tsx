@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 function AITutorPageContent() {
     return (
-        <div className="h-full">
+        <div>
             <h1 className="font-headline text-3xl font-bold text-foreground mb-6">
                 AI Tutor
             </h1>
