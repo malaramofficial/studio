@@ -1,10 +1,8 @@
-
-
 'use client';
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, BrainCircuit, FileText, PlayCircle } from "lucide-react";
+import { ArrowRight, BookOpen, BrainCircuit, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +19,7 @@ import { doc } from "firebase/firestore";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import { syllabus } from "@/lib/syllabus";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const quickActions = [
   { label: "AI से पूछें", icon: BrainCircuit, href: "/ai" },
@@ -55,8 +54,36 @@ const featureCards = [
   },
 ];
 
-// Calculate total chapters once
 const totalChapters = syllabus.flatMap(stream => stream.subjects.flatMap(subject => subject.units.flatMap(unit => unit.chapters))).length;
+
+function AdBanner() {
+    const { firestore } = useFirebase();
+    const bannerDocRef = useMemoFirebase(
+        () => (firestore ? doc(firestore, 'adBanners', 'main-banner') : null),
+        [firestore]
+    );
+
+    const { data: bannerData, isLoading } = useDoc(bannerDocRef);
+
+    if (isLoading) {
+        return <Skeleton className="h-48 w-full rounded-2xl" />;
+    }
+
+    if (!bannerData?.imageUrl) {
+        return null; // Don't render anything if there's no banner URL
+    }
+
+    return (
+        <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-lg">
+            <Image
+                src={bannerData.imageUrl}
+                alt="Advertisement"
+                fill
+                className="object-cover"
+            />
+        </div>
+    );
+}
 
 
 export default function HomePage() {
@@ -77,10 +104,6 @@ export default function HomePage() {
     return { completedChapters: completedCount, progressPercentage: percentage };
   }, [userData]);
 
-
-  const adBannerImage = PlaceHolderImages.find(
-    (img) => img.id === "ad-banner"
-  )!;
 
   return (
     <div className="space-y-8">
@@ -105,12 +128,10 @@ export default function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {(progressPercentage > 0 || (userData && Object.keys(userData.learningProgress || {}).length === 0)) && (
             <div>
               <Progress value={progressPercentage} className="w-full" />
               <p className="text-right text-sm text-muted-foreground mt-2">{progressPercentage}% पूरा हुआ</p>
             </div>
-          )}
         </CardContent>
       </Card>
 
@@ -131,6 +152,9 @@ export default function HomePage() {
           </Button>
         ))}
       </div>
+      
+      {/* Ad Banner */}
+      <AdBanner />
 
       {/* Feature Cards */}
       <div className="space-y-4 pt-8">
@@ -166,22 +190,6 @@ export default function HomePage() {
               </Card>
             );
           })}
-        </div>
-      </div>
-
-      {/* Ad Banner */}
-      <div className="relative w-full h-48 rounded-2xl overflow-hidden shadow-lg">
-        <Image
-          src={adBannerImage.imageUrl}
-          alt={adBannerImage.description}
-          fill
-          className="object-cover"
-          data-ai-hint={adBannerImage.imageHint}
-        />
-        <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-center p-4">
-            <h3 className="font-headline text-3xl font-bold text-primary">अपनी तैयारी को पंख दें</h3>
-            <p className="text-foreground mt-2 max-w-2xl">हमारे प्रीमियम फीचर्स के साथ बोर्ड परीक्षा में टॉप करें।</p>
-            <Button className="mt-4" size="lg">शामिल हों</Button>
         </div>
       </div>
     </div>

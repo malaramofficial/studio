@@ -307,6 +307,33 @@
         "hobbies",
         "instagram"
       ]
+    },
+    "AdBanner": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AdBanner",
+      "type": "object",
+      "description": "Stores configuration for a single advertisement banner.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the banner (e.g., 'main-banner')."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL for the banner image.",
+          "format": "uri"
+        },
+        "targetUrl": {
+          "type": "string",
+          "description": "Optional URL to navigate to when the banner is clicked.",
+          "format": "uri"
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Controls whether the banner is currently visible in the app."
+        }
+      },
+      "required": ["id", "imageUrl"]
     }
   },
   "auth": {
@@ -456,8 +483,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/adBanners/{bannerId}",
+        "definition": {
+          "entityName": "AdBanner",
+          "schema": {
+            "$ref": "#/backend/entities/AdBanner"
+          },
+          "description": "Stores ad banner configurations. Writable only by an admin role.",
+          "params": [
+            {
+              "name": "bannerId",
+              "description": "The unique identifier of the banner."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to be secure, scalable, and debuggable, adhering to the core design principles. Authorization Independence is achieved by denormalizing authorization data (e.g., the `members` map for collaborative data) into subcollections. Structural Segregation is maintained by keeping data with similar security needs in the same collections. Access Modeling uses path-based ownership for private data and membership maps for collaborative data. Invariants such as timestamps, ownership, and denormalized data are enforced via security rules.\n\nSpecifically:\n\n*   **Users:** User data is stored under `/users/{userId}` with path-based ownership, providing private access.\n*   **Exams & Questions:** Exams are stored in `/exams/{examId}`.  Questions are nested under exams at `/exams/{examId}/questions/{questionId}`. This establishes a clear 1:N relationship.\n*   **Written Exam Attempts & Answers:** Written exam attempts are stored under `/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}` and related answers under `/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}/answers/{answerId}`.  This creates a nested structure that reflects the user's attempts and their corresponding answers, and enables secure list operations.\n*   **Syllabus:** Syllabus entries are stored in a hierarchical structure `/syllabus/{stream}/{subject}/chapters/{chapterId}/topics/{topicId}` to organize content for easy querying and filtering.  The QAP here is ensuring unauthorized users can't modify the syllabus.  The lack of any user write access required here makes this simple.\n*   **Creator:** Creator information is stored in `/meta/creator/{creatorId}`. This allows the app to quickly retrieve creator data, and is a singleton.\n\nThis structure facilitates simple, robust security rules.  For example, only the user can read/write their own `/users/{userId}` document and associated data, and only admins can modify the syllabus."
+    "reasoning": "The Firestore structure is designed to be secure, scalable, and debuggable, adhering to the core design principles. Authorization Independence is achieved by denormalizing authorization data (e.g., the `members` map for collaborative data) into subcollections. Structural Segregation is maintained by keeping data with similar security needs in the same collections. Access Modeling uses path-based ownership for private data and membership maps for collaborative data. Invariants such as timestamps, ownership, and denormalized data are enforced via security rules.\n\nSpecifically:\n\n*   **Users:** User data is stored under `/users/{userId}` with path-based ownership, providing private access.\n*   **Exams & Questions:** Exams are stored in `/exams/{examId}`.  Questions are nested under exams at `/exams/{examId}/questions/{questionId}`. This establishes a clear 1:N relationship.\n*   **Written Exam Attempts & Answers:** Written exam attempts are stored under `/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}` and related answers under `/users/{userId}/writtenExamAttempts/{writtenExamAttemptId}/answers/{answerId}`.  This creates a nested structure that reflects the user's attempts and their corresponding answers, and enables secure list operations.\n*   **Syllabus:** Syllabus entries are stored in a hierarchical structure `/syllabus/{stream}/{subject}/chapters/{chapterId}/topics/{topicId}` to organize content for easy querying and filtering.  The QAP here is ensuring unauthorized users can't modify the syllabus.  The lack of any user write access required here makes this simple.\n*   **Creator:** Creator information is stored in `/meta/creator/{creatorId}`. This allows the app to quickly retrieve creator data, and is a singleton.\n*   **AdBanners:** A new top-level collection `/adBanners/{bannerId}` is added to store ad banner configurations. This data is publicly readable but should only be writable by an authenticated admin user. This keeps marketing content separate from core academic and user data.\n\nThis structure facilitates simple, robust security rules.  For example, only the user can read/write their own `/users/{userId}` document and associated data, and only admins can modify the syllabus."
   }
 }

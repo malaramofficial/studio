@@ -5,9 +5,10 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle } from 'lucide-react';
+import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle, Shield } from 'lucide-react';
 import { useState } from 'react';
 import { InstagramModal } from './instagram-modal';
+import Link from 'next/link';
 
 type CreatorProfileProps = {
   creatorInfo: CreatorInfo;
@@ -52,9 +53,17 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
               <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>
               <p className="text-muted-foreground mt-1">{creatorInfo.dob} &bull; {creatorInfo.gender}</p>
               
-              <Button onClick={handleOpenModal} className="mt-4 gap-2">
-                <Instagram /> Instagram
-              </Button>
+              <div className="flex flex-wrap gap-2 mt-4">
+                <Button onClick={handleOpenModal} className="gap-2 flex-1">
+                  <Instagram /> Instagram
+                </Button>
+                <Button asChild variant="secondary" className="gap-2 flex-1">
+                    <Link href="/admin">
+                        <Shield /> Admin
+                    </Link>
+                </Button>
+              </div>
+
             </div>
             <div className="md:col-span-2 p-8">
               <h2 className="font-headline text-2xl font-bold mb-6">About Me</h2>
