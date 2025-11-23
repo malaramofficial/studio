@@ -55,7 +55,7 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
     try {
       await uploadBytes(imageRef, file);
       const newUrl = await getDownloadURL(imageRef);
-      setCreatorImageUrl(newUrl); // Update the image URL in the state to re-render the component
+      setCreatorImageUrl(newUrl);
       toast({
         title: "Success!",
         description: "Your profile photo has been updated.",
