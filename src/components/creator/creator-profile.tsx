@@ -6,10 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '../ui/button';
-import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, Wand } from 'lucide-react';
+import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import { InstagramModal } from './instagram-modal';
-import { getCreatorInstagram } from '@/ai/flows/get-creator-instagram';
 
 type CreatorProfileProps = {
   creatorInfo: CreatorInfo;
@@ -23,6 +22,7 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const handleCloseModal = () => setIsModalOpen(false);
 
   const infoSections = [
+    { icon: UserCircle, label: "Role", value: creatorInfo.role },
     { icon: MapPin, label: "Location", value: creatorInfo.location },
     { icon: Briefcase, label: "Profession", value: creatorInfo.profession },
     { icon: GraduationCap, label: "Education", value: creatorInfo.education },
