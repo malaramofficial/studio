@@ -5,7 +5,7 @@ export default async function CreatorPage() {
   const creatorInfo = await getCreatorInfo();
 
   return (
-    <div className="pb-16">
+    <div>
       <h1 className="font-headline text-3xl font-bold text-foreground mb-6">
         About the Creator
       </h1>
