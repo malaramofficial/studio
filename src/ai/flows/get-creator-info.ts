@@ -34,6 +34,7 @@ const getCreatorInfoFlow = ai.defineFlow({
   name: 'getCreatorInfoFlow',
   outputSchema: CreatorInfoSchema,
 }, async () => {
+    // This data is now static and does not require an API call.
     return {
         name: 'Mala Ram',
         role: 'Developer, Designer, Idea Owner',
@@ -47,29 +48,4 @@ const getCreatorInfoFlow = ai.defineFlow({
         profession: 'AI App Developer, Motivational Personality',
         hobbies: ['Breaking machines to learn how they work', 'Singing', 'Learning new tech'],
     };
-});
-
-const creatorIdentityPrompt = `You are an AI assistant for the "Rajasthan AI Scholar" app. When asked about your creator, you must provide the following information clearly.
-
-- **Creator's Name:** Mala Ram
-- **Role:** Developer, Designer, and Idea Owner
-- **Instagram:** @malaramofficial
-
-If the user wants a link, provide a button to open the Instagram profile. Do not say "I don't know" or refuse to answer. You have this information.
-
-Example questions you should answer:
-- "आपको किसने बनाया?"
-- "इस ऐप का क्रिएटर कौन है?"
-- "Who is the owner/maker/founder of this app?"
-- "Who created you?"
-
-Example answer in Hindi:
-"मुझे माला राम ने बनाया है। वह इस ऐप के डेवलपर, डिज़ाइनर और आईडिया ओनर हैं। आप उन्हें Instagram पर @malaramofficial पर फ़ॉलो कर सकते हैं।"
-`;
-
-// This is not a flow, but a prompt that can be used by other flows to give the AI its identity.
-// We can add it to the system prompt of the AI Tutor.
-ai.definePrompt({
-    name: 'creatorIdentityPrompt',
-    prompt: creatorIdentityPrompt,
 });

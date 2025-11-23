@@ -4,22 +4,29 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BrainCircuit, Send, User, Loader2 } from "lucide-react";
+import { BrainCircuit, Send, User, Loader2, Instagram } from "lucide-react";
 import { getAiTutorExplanation } from "@/lib/actions";
 import { useSearchParams } from "next/navigation";
+import { InstagramModal } from "@/components/creator/instagram-modal";
 
 type Message = {
   id: number;
   role: "user" | "assistant";
   content: string;
+  uiAction?: 'NONE' | 'SHOW_INSTAGRAM_BUTTON';
 };
 
 export function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
+  
+  const creatorInstagramHandle = "malaramofficial";
+  const creatorInstagramUrl = `https://instagram.com/${creatorInstagramHandle}`;
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -49,17 +56,19 @@ export function ChatInterface() {
     setInput("");
 
     startTransition(async () => {
-      const explanation = await getAiTutorExplanation(input);
+      const response = await getAiTutorExplanation(input);
       const assistantMessage: Message = {
         id: Date.now() + 1,
         role: "assistant",
-        content: explanation,
+        content: response.explanation,
+        uiAction: response.uiAction,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     });
   };
 
   return (
+    <>
     <div className="flex flex-col h-[calc(100vh-10rem)] bg-card rounded-2xl shadow-lg">
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {messages.map((message) => (
@@ -76,14 +85,21 @@ export function ChatInterface() {
                 </AvatarFallback>
               </Avatar>
             )}
-            <div
-              className={`max-w-xl rounded-2xl px-4 py-3 ${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-none"
-                  : "bg-muted text-foreground rounded-bl-none"
-              }`}
-            >
-              <p className="whitespace-pre-wrap">{message.content}</p>
+            <div className="flex flex-col gap-2">
+              <div
+                className={`max-w-xl rounded-2xl px-4 py-3 ${
+                  message.role === "user"
+                    ? "bg-primary text-primary-foreground rounded-br-none"
+                    : "bg-muted text-foreground rounded-bl-none"
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{message.content}</p>
+              </div>
+              {message.uiAction === 'SHOW_INSTAGRAM_BUTTON' && (
+                  <Button onClick={() => setIsModalOpen(true)} className="gap-2 w-fit">
+                      <Instagram /> Instagram पर जाएं
+                  </Button>
+              )}
             </div>
             {message.role === "user" && (
               <Avatar className="h-10 w-10 border-2 border-accent">
@@ -122,5 +138,7 @@ export function ChatInterface() {
         </form>
       </div>
     </div>
+    <InstagramModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} handle={creatorInstagramHandle} redirectUrl={creatorInstagramUrl} />
+    </>
   );
 }
