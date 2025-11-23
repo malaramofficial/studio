@@ -1,16 +1,13 @@
 'use client';
 
 import type { CreatorInfo } from '@/ai/flows/get-creator-info';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import { Button } from '../ui/button';
-import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle, Edit, Loader2 } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { Instagram, MapPin, Briefcase, GraduationCap, Dna, Lightbulb, Heart, UserCircle } from 'lucide-react';
+import { useState } from 'react';
 import { InstagramModal } from './instagram-modal';
-import { storage } from '@/lib/firebase';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { useToast } from '@/hooks/use-toast';
 
 type CreatorProfileProps = {
   creatorInfo: CreatorInfo;
@@ -18,28 +15,9 @@ type CreatorProfileProps = {
 
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [creatorImageUrl, setCreatorImageUrl] = useState("https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop");
-  const [isUploading, setIsUploading] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        const imageRef = ref(storage, 'creator-profile/profile-photo.jpg');
-        const url = await getDownloadURL(imageRef);
-        setCreatorImageUrl(url);
-      } catch (error: any) {
-        if (error.code === 'storage/object-not-found') {
-          // Use default image if not found in storage
-          setCreatorImageUrl("https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop");
-        } else {
-          console.error("Error fetching creator image:", error);
-        }
-      }
-    };
-    fetchImage();
-  }, []);
-
+  
+  // Hardcoded the direct image URL for simplicity and reliability.
+  const creatorImageUrl = "https://images.unsplash.com/photo-1598529342483-c9e2b8b9e693?q=80&w=870&auto=format&fit=crop";
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -71,13 +49,8 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
                   height={200}
                   className="rounded-full border-4 border-primary shadow-lg"
                   data-ai-hint="creator portrait male"
-                  key={creatorImageUrl} // Force re-render on URL change
+                  priority
                 />
-                 {isUploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
-                    <Loader2 className="w-10 h-10 animate-spin text-white" />
-                  </div>
-                )}
                  <span className="absolute bottom-2 right-2 block h-6 w-6 rounded-full bg-green-500 border-2 border-card ring-2 ring-green-500" />
               </div>
               <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>
