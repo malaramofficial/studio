@@ -1,7 +1,6 @@
 "use server";
 
 import { generateWrittenExamV2 as genExam, type GenerateWrittenExamInputV2, type GenerateWrittenExamOutputV2 } from "@/ai/flows/generate-written-exam-v2";
-import { evaluateWrittenExam as evalExam, type EvaluateWrittenExamInput, type EvaluateWrittenExamOutput } from "@/ai/flows/evaluate-written-exam";
 
 export async function generateWrittenExamV2(input: GenerateWrittenExamInputV2): Promise<GenerateWrittenExamOutputV2> {
   try {
@@ -26,27 +25,6 @@ export async function generateWrittenExamV2(input: GenerateWrittenExamInputV2): 
         subject: input.subject,
         questions: []
       }
-    };
-  }
-}
-
-export async function evaluateWrittenExamV2(input: EvaluateWrittenExamInput): Promise<EvaluateWrittenExamOutput> {
-  try {
-    const result = await evalExam(input);
-    return result;
-  } catch (error) {
-    console.error("Error in evaluateWrittenExamV2:", error);
-     // In a real app, you'd have more robust failover here (Groq, rule-based, etc.)
-    // For now, return a mock error response that fits the schema.
-    return {
-        perQuestion: input.questions.map(() => ({
-            marks: 0,
-            feedback: "Evaluation failed. Please try again."
-        })),
-        totalScore: 0,
-        percentage: 0,
-        improvementAdvice: "Could not evaluate the exam due to an error. Please try submitting again.",
-        weakAreas: ["System Error"]
     };
   }
 }

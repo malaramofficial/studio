@@ -24,7 +24,8 @@ import {
 import { syllabus } from "@/lib/syllabus";
 import type { Stream, Subject } from "@/lib/types";
 import { Loader2 } from "lucide-react";
-import { generateWrittenExamV2, evaluateWrittenExamV2 } from "@/lib/test-actions-v2";
+import { generateWrittenExamV2 } from "@/lib/test-actions-v2";
+import { evaluateWrittenExam } from "@/lib/test-actions"; // Corrected import
 import { TestInterface } from "./test-interface";
 import { EvaluationDisplay } from "./evaluation-display";
 import type { EvaluateWrittenExamOutput, EvaluateWrittenExamInput } from "@/ai/flows/evaluate-written-exam";
@@ -95,7 +96,8 @@ export function TestGenerationFormV2() {
     };
 
     startTransition(async () => {
-      const result = await evaluateWrittenExamV2(evaluationInput);
+      // Corrected to use the single, correct evaluation action
+      const result = await evaluateWrittenExam(evaluationInput);
       setEvaluation(result);
     });
   }
@@ -124,7 +126,6 @@ export function TestGenerationFormV2() {
   }
 
   if (examOutput?.exam?.questions) {
-    // This is the critical fix: extract only the question text for the simple TestInterface.
     const questionsForInterface = examOutput.exam.questions.map(q => q.question);
     return (
       <TestInterface
