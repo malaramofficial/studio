@@ -11,7 +11,6 @@ export type GeneratedExam = {
   totalMarks: number;
   questions: {
     id: string;
-    section: string;
     marks: number;
     questionText: string;
     type: 'long' | 'short' | 'mcq';
@@ -28,17 +27,13 @@ export type EvaluationResult = EvaluateWrittenExamOutput & {
     })[]
 };
 
-// Helper function to assign sections and marks. This can be improved.
-function assignQuestionMetadata(questionType: 'long' | 'short' | 'mcq', index: number) {
-    let section = 'A';
-    if (index > 4 && index <= 9) section = 'B';
-    if (index > 9) section = 'C';
-
+// Helper function to assign marks. This can be improved.
+function assignQuestionMetadata(questionType: 'long' | 'short' | 'mcq') {
     let marks = 5; // Default for short
     if (questionType === 'long') marks = 10;
     if (questionType === 'mcq') marks = 2;
     
-    return { section, marks };
+    return { marks };
 }
 
 // Wrapper for the Genkit flow to generate an exam.
@@ -53,12 +48,10 @@ export async function generateWrittenExamGenkit(payload: GenerateWrittenExamInpu
 
     console.log(`Genkit returned ${result.exam.questions.length} questions.`);
 
-    // Transform the Genkit output to match the client-side `GeneratedExam` type.
     const transformedQuestions = result.exam.questions.map((q, index) => {
-        const { section, marks } = assignQuestionMetadata(q.type, index);
+        const { marks } = assignQuestionMetadata(q.type);
         return {
             id: `q_${index}`,
-            section,
             marks,
             questionText: q.question,
             type: q.type,
@@ -78,7 +71,6 @@ export async function generateWrittenExamGenkit(payload: GenerateWrittenExamInpu
     };
   } catch (error) {
     console.error("Error in generateWrittenExamGenkit:", error);
-    // Throw the error to be handled by the API route, which will return a 500 status.
     throw new Error("Failed to generate exam paper from AI model.");
   }
 }
@@ -92,7 +84,6 @@ export async function evaluateWrittenExamGenkit(payload: {
 }): Promise<EvaluationResult> {
     console.log("Calling Genkit to evaluate exam for examId:", payload.examId);
     
-    // The Genkit flow expects simple arrays of strings.
     const evaluationInput: EvaluateWrittenExamInput = {
         questions: payload.questions.map(q => q.questionText),
         answers: payload.answers.map(a => a.answerText),
@@ -105,14 +96,13 @@ export async function evaluateWrittenExamGenkit(payload: {
             throw new Error("Invalid response structure from evaluation flow.");
         }
 
-        // Combine the AI evaluation with the original question data (IDs, maxMarks).
         const perQuestionWithId = result.perQuestion.map((pq, index) => {
             const originalQuestion = payload.questions[index];
             return {
                 ...pq,
                 id: originalQuestion.id,
                 maxMarks: originalQuestion.maxMarks,
-                marksObtained: pq.marks, // The AI returns 'marks', so we map it to 'marksObtained'
+                marksObtained: pq.marks, 
             };
         });
 

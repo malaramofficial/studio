@@ -1,3 +1,4 @@
+
 import { WrittenExamClient } from "@/components/WrittenExamClient";
 
 export default function WrittenExamPage() {

@@ -9,23 +9,9 @@ import { Loader2 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import { useToast } from "@/hooks/use-toast";
+import type { GeneratedExam } from "@/lib/genkit";
 
-type Question = {
-  id: string;
-  section: string;
-  marks: number;
-  questionText: string;
-  type: 'long' | 'short' | 'mcq';
-  options?: string[];
-};
-
-type GeneratedExam = {
-  examId: string;
-  title: string;
-  durationMinutes: number;
-  totalMarks: number;
-  questions: Question[];
-};
+type Question = GeneratedExam['questions'][0];
 
 type EvaluationResult = {
     perQuestion: { id: string; marksObtained: number; maxMarks: number; feedback: string }[];
@@ -64,7 +50,6 @@ export function WrittenExamClient() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          stream,
           subject,
           chapters: chaptersInput ? chaptersInput.split(',').map(s => s.trim()) : [],
           durationMinutes: duration,
@@ -89,8 +74,46 @@ export function WrittenExamClient() {
     }
   };
 
+  const handleSubmit = async (isAutoSubmit = false) => {
+    if (!exam || submitted) return;
+    if (!isAutoSubmit) {
+      const confirmSubmit = window.confirm('क्या आप निश्चित रूप से पेपर सबमिट करना चाहते हैं?');
+      if (!confirmSubmit) return;
+    }
+    setLoadingEvaluate(true);
+    setSubmitted(true);
+    if (timerIdRef.current) clearInterval(timerIdRef.current);
+    setTimer(0);
+
+    const payload = {
+      examId: exam.examId,
+      questions: exam.questions.map(q => ({ id: q.id, questionText: q.questionText, maxMarks: q.marks })),
+      answers: exam.questions.map(q => ({ id: q.id, answerText: answers[q.id] || "" })),
+    };
+    try {
+      const res = await fetch('/api/evaluate-exam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setResult(data.result);
+        setTimer(null);
+      } else {
+        throw new Error(data.error || 'Evaluation failed');
+      }
+    } catch (e) => {
+      const error = e instanceof Error ? e.message : String(e);
+      toast({ variant: "destructive", title: "Evaluation Failed", description: error });
+      setSubmitted(false); // Allow user to try again if evaluation fails
+    } finally {
+      setLoadingEvaluate(false);
+    }
+  };
+
   useEffect(() => {
-    if (timer === null || submitted) {
+    if (timer === null) {
       if (timerIdRef.current) clearInterval(timerIdRef.current);
       return;
     }
@@ -106,49 +129,13 @@ export function WrittenExamClient() {
         return prev - 1;
       });
     }, 1000);
+
     return () => {
       if (timerIdRef.current) clearInterval(timerIdRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timer, submitted]);
 
-  const handleAnswerChange = (qid: string, text: string) => {
-    setAnswers(prev => ({ ...prev, [qid]: text }));
-  };
-
-  const handleSubmit = async (isAutoSubmit = false) => {
-    if (!exam || submitted) return;
-    if (!isAutoSubmit) {
-      const confirmSubmit = window.confirm('क्या आप निश्चित रूप से पेपर सबमिट करना चाहते हैं?');
-      if (!confirmSubmit) return;
-    }
-    setLoadingEvaluate(true);
-    const payload = {
-      examId: exam.examId,
-      questions: exam.questions.map(q => ({ id: q.id, questionText: q.questionText, maxMarks: q.marks })),
-      answers: exam.questions.map(q => ({ id: q.id, answerText: answers[q.id] || "" })),
-    };
-    try {
-      const res = await fetch('/api/evaluate-exam', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setResult(data.result);
-        setSubmitted(true);
-        setTimer(null);
-      } else {
-        throw new Error(data.error || 'Evaluation failed');
-      }
-    } catch (e) {
-      const error = e instanceof Error ? e.message : String(e);
-      toast({ variant: "destructive", title: "Evaluation Failed", description: error });
-    } finally {
-      setLoadingEvaluate(false);
-    }
-  };
 
   const resetExam = () => {
     setExam(null);
@@ -195,13 +182,13 @@ export function WrittenExamClient() {
                     <div className="mb-4 p-4 bg-muted/50 rounded-lg">
                         <h3 className="font-semibold mb-1">Weak Areas</h3>
                         <div className="flex flex-wrap gap-2 mt-2">
-                        {result.weakAreas.map(area => <span key={area} className="px-2 py-1 bg-destructive/20 text-destructive-foreground rounded-md text-xs">{area}</span>)}
+                        {result.weakAreas.map((area: string) => <span key={area} className="px-2 py-1 bg-destructive/20 text-destructive-foreground rounded-md text-xs">{area}</span>)}
                         </div>
                     </div>
 
                     <div className="space-y-3">
                         <h3 className="font-semibold">Per-question Feedback</h3>
-                        {result.perQuestion.map((pq, index)=>(
+                        {result.perQuestion.map((pq: any, index: number)=>(
                         <div key={pq.id || index} className="p-3 rounded-lg bg-muted/50">
                             <div className="flex justify-between items-center mb-1">
                                 <div className="text-sm font-semibold">Question {index + 1}</div>
@@ -238,7 +225,7 @@ export function WrittenExamClient() {
           </div>
 
           <div className="mt-4 p-4 rounded-xl bg-muted/50">
-            <div className="text-xs text-muted-foreground">Section {q.section} • {q.marks} marks</div>
+            <div className="text-xs text-muted-foreground">Marks: {q.marks}</div>
             <div className="mt-2 font-medium whitespace-pre-wrap">{q.questionText}</div>
             {q.type === 'mcq' && q.options ? (
               <RadioGroup value={answers[q.id] || ""} onValueChange={(value) => handleAnswerChange(q.id, value)} className="mt-4 space-y-2">

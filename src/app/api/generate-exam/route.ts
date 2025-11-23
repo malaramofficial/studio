@@ -7,7 +7,6 @@ export async function POST(req: Request) {
   try {
     const body: GenerateWrittenExamInputV2 = await req.json();
     
-    // Basic validation
     if (!body.subject || !body.durationMinutes || !body.marks) {
         return NextResponse.json({ ok: false, error: "Missing required fields: subject, durationMinutes, marks." }, { status: 400 });
     }
