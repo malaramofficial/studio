@@ -17,7 +17,7 @@ const GenerateWrittenExamInputSchema = z.object({
 export type GenerateWrittenExamInput = z.infer<typeof GenerateWrittenExamInputSchema>;
 
 // The output is now a simple array of strings.
-const GenerateWrittenExamOutputSchema = z.array(z.string()).describe('A list of 5 exam questions.');
+const GenerateWrittenExamOutputSchema = z.array(z.string()).describe('A list of 5 exam questions in Hindi.');
 
 export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<string[]> {
   return generateWrittenExamFlow(input);
@@ -27,19 +27,20 @@ const prompt = ai.definePrompt({
   name: 'generateSimpleWrittenExamPrompt',
   input: {schema: GenerateWrittenExamInputSchema},
   output: {schema: GenerateWrittenExamOutputSchema},
-  prompt: `You are an expert teacher creating a short exam for RBSE Class 12 students.
+  prompt: `You are an expert teacher creating a short exam for RBSE Class 12 Hindi medium students.
 The exam is for the subject: {{{subject}}}.
 
-CRITICAL: Generate exactly 5 short-answer questions.
-Your output must be a simple JSON array of strings. Do not output anything else.
+CRITICAL: Generate exactly 5 short-answer questions in HINDI.
+The questions must be suitable for Hindi medium students.
+Your output must be a simple JSON array of strings, with each string being a question in Hindi. Do not output anything else.
 
-Example output for "Physics":
+Example output for "भौतिक विज्ञान":
 [
-  "State Coulomb's law and define the unit of charge.",
-  "What is electromagnetic induction? Give an example.",
-  "Explain the difference between nuclear fission and fusion.",
-  "What are the postulates of Bohr's atomic model?",
-  "Define and explain the concept of total internal reflection."
+  "कूलॉम का नियम बताइए तथा आवेश के मात्रक को परिभाषित कीजिए।",
+  "विद्युतचुम्बकीय प्रेरण क्या है? एक उदाहरण दीजिए।",
+  "नाभिकीय विखंडन तथा संलयन में अंतर स्पष्ट कीजिए।",
+  "बोर के परमाणु मॉडल के अभिगृहीत क्या हैं?",
+  "पूर्ण आन्तरिक परावर्तन की अवधारणा को परिभाषित तथा व्याख्या कीजिए।"
 ]`,
 });
 
