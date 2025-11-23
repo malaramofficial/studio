@@ -106,7 +106,7 @@ export function TestGenerationForm() {
     const subject = selectedSubject?.name;
     let chapters: string[] = [];
 
-    if (values.chapterId) {
+    if (values.chapterId && values.chapterId !== "all") {
         const chapter = selectedUnit?.chapters.find(c => c.id === values.chapterId)?.name;
         if(chapter) chapters.push(chapter);
     } else if (values.unitId) {
@@ -271,7 +271,7 @@ export function TestGenerationForm() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">All Chapters in Unit</SelectItem>
+                    <SelectItem value="all">All Chapters in Unit</SelectItem>
                     {selectedUnit?.chapters.map((chapter: Chapter) => (
                       <SelectItem key={chapter.id} value={chapter.id}>
                         {chapter.name}
