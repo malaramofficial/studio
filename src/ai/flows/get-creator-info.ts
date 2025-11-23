@@ -29,31 +29,20 @@ export async function getCreatorInfo(): Promise<CreatorInfo> {
   return getCreatorInfoFlow();
 }
 
-const creatorInfoPrompt = ai.definePrompt({
-  name: 'creatorInfoPrompt',
-  output: {schema: CreatorInfoSchema},
-  prompt: `You are an AI assistant providing information about the creator of this application.
-
-  The creator's name is Mala Ram. Use the following information to respond.
-  Name: Mala Ram
-  DOB: 10 Oct 2001
-  Gender: Male
-  Location: Barmer, Rajasthan
-  Education: BA Hindi Literature
-  Interests: Technology, Science, Coding, Machines, Psychology
-  Beliefs: Independent thinking, Logic, No religion/caste identity, Agrees with Osho Rajneesh
-  Profession: AI App Developer, Motivational Personality
-  Hobbies: Breaking machines to learn how they work, Singing, Learning new tech
-  Instagram: malaramofficial
-
-  Return a JSON object with all of the above data.
-  `,
-});
-
 const getCreatorInfoFlow = ai.defineFlow({
   name: 'getCreatorInfoFlow',
   outputSchema: CreatorInfoSchema,
 }, async () => {
-  const {output} = await creatorInfoPrompt({});
-  return output!;
+    return {
+        name: 'Mala Ram',
+        dob: '10 Oct 2001',
+        gender: 'Male',
+        location: 'Barmer, Rajasthan',
+        education: 'BA Hindi Literature',
+        interests: ['Technology', 'Science', 'Coding', 'Machines', 'Psychology'],
+        beliefs: ['Independent thinking', 'Logic', 'No religion/caste identity', 'Agrees with Osho Rajneesh'],
+        profession: 'AI App Developer, Motivational Personality',
+        hobbies: ['Breaking machines to learn how they work', 'Singing', 'Learning new tech'],
+        instagram: 'malaramofficial',
+    };
 });
