@@ -105,6 +105,11 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
                   data-ai-hint="creator portrait male"
                   key={creatorImageUrl} // Force re-render on URL change
                 />
+                 {isUploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                    <Loader2 className="w-10 h-10 animate-spin text-white" />
+                  </div>
+                )}
                  <span className="absolute bottom-2 right-2 block h-6 w-6 rounded-full bg-green-500 border-2 border-card ring-2 ring-green-500" />
               </div>
               <h1 className="font-headline text-3xl font-bold mt-4 text-primary">{creatorInfo.name}</h1>
