@@ -38,7 +38,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname.startsWith(item.href)}
+                isActive={pathname === item.href || (item.href !== '/home' && pathname.startsWith(item.href))}
                 className="justify-start"
                 tooltip={item.label}
               >

@@ -25,7 +25,7 @@ export function BottomNav() {
             href={item.href}
             className={cn(
               "inline-flex flex-col items-center justify-center p-2 hover:bg-muted group transition-colors",
-              pathname.startsWith(item.href)
+               (pathname === item.href || (item.href !== '/home' && pathname.startsWith(item.href)))
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground"
             )}

@@ -1,12 +1,9 @@
-// lib/genkit.ts (server-side)
 'use server';
 
-import { generateWrittenExamV2 } from "@/ai/flows/generate-written-exam-v2";
-import type { GenerateWrittenExamOutputV2 } from "@/ai/flows/generate-written-exam-v2";
-import { evaluateWrittenExam as evaluateExamFlow } from '@/ai/flows/evaluate-written-exam';
-import type { EvaluateWrittenExamOutput, EvaluateWrittenExamInput } from '@/ai/flows/evaluate-written-exam';
+import { generateWrittenExamV2, type GenerateWrittenExamInputV2 } from "@/ai/flows/generate-written-exam-v2";
+import { evaluateWrittenExam as evaluateExamFlow, type EvaluateWrittenExamInput, type EvaluateWrittenExamOutput } from '@/ai/flows/evaluate-written-exam';
 
-// Re-typing to match the client component's expectation, creating a separation layer.
+// Define the shape of the exam as the client expects it.
 export type GeneratedExam = {
   examId: string;
   title: string;
@@ -14,8 +11,8 @@ export type GeneratedExam = {
   totalMarks: number;
   questions: {
     id: string;
-    section: string; // Section is not in Genkit output, we can add it or make it default
-    marks: number; // marks is not in Genkit output, we can add it or make it default
+    section: string;
+    marks: number;
     questionText: string;
     type: 'long' | 'short' | 'mcq';
     options?: string[];
@@ -23,98 +20,109 @@ export type GeneratedExam = {
   }[];
 };
 
-export type EvaluationResult = EvaluateWrittenExamOutput;
+export type EvaluationResult = EvaluateWrittenExamOutput & {
+    perQuestion: (EvaluateWrittenExamOutput['perQuestion'][number] & {
+        id: string;
+        maxMarks: number;
+        marksObtained: number;
+    })[]
+};
 
-function transformGenkitQuestionToExamQuestion(q: any, index: number) {
-    // Crude section logic based on index for now
+// Helper function to assign sections and marks. This can be improved.
+function assignQuestionMetadata(questionType: 'long' | 'short' | 'mcq', index: number) {
     let section = 'A';
-    if (index > 5) section = 'B';
-    if (index > 10) section = 'C';
+    if (index > 4 && index <= 9) section = 'B';
+    if (index > 9) section = 'C';
 
-    // Assign marks based on question type
-    let marks = 5;
-    if (q.type === 'long') marks = 10;
-    if (q.type === 'mcq') marks = 2;
-
-
-    return {
-        id: `q${index + 1}`,
-        section: section,
-        marks: marks, 
-        questionText: q.question,
-        type: q.type,
-        options: q.options,
-        answer: q.answer
-    };
+    let marks = 5; // Default for short
+    if (questionType === 'long') marks = 10;
+    if (questionType === 'mcq') marks = 2;
+    
+    return { section, marks };
 }
 
-
-export async function generateWrittenExamGenkit(payload: {
-  stream: string;
-  subject: string;
-  chapters: string[];
-  durationMinutes: number;
-  totalMarks?: number;
-}): Promise<GeneratedExam> {
+// Wrapper for the Genkit flow to generate an exam.
+export async function generateWrittenExamGenkit(payload: GenerateWrittenExamInputV2): Promise<GeneratedExam> {
+  console.log("Calling Genkit to generate exam with payload:", payload);
   try {
-      const result: GenerateWrittenExamOutputV2 = await generateWrittenExamV2({
-          subject: payload.subject,
-          chapters: payload.chapters,
-          marks: payload.totalMarks || 100,
-          durationMinutes: payload.durationMinutes,
-      });
+    const result = await generateWrittenExamV2(payload);
 
-      if (!result || !result.exam) {
-        throw new Error("Invalid response from exam generation flow");
-      }
+    if (result.status !== 'success' || !result.exam || !Array.isArray(result.exam.questions)) {
+      throw new Error("Invalid response structure from Genkit flow.");
+    }
 
-      return {
-        examId: "exam_" + Date.now(),
-        title: `${result.exam.subject} - Sample Paper`,
-        durationMinutes: payload.durationMinutes,
-        totalMarks: payload.totalMarks ?? 100,
-        questions: result.exam.questions.map(transformGenkitQuestionToExamQuestion),
-      };
+    console.log(`Genkit returned ${result.exam.questions.length} questions.`);
+
+    // Transform the Genkit output to match the client-side `GeneratedExam` type.
+    const transformedQuestions = result.exam.questions.map((q, index) => {
+        const { section, marks } = assignQuestionMetadata(q.type, index);
+        return {
+            id: `q_${index}`,
+            section,
+            marks,
+            questionText: q.question,
+            type: q.type,
+            options: q.options,
+            answer: q.answer,
+        };
+    });
+    
+    const totalMarks = transformedQuestions.reduce((sum, q) => sum + q.marks, 0);
+
+    return {
+      examId: "exam_" + Date.now(),
+      title: `${result.exam.subject} - ${result.exam.stream}`,
+      durationMinutes: payload.durationMinutes,
+      totalMarks: totalMarks,
+      questions: transformedQuestions,
+    };
   } catch (error) {
-      console.error("Error in generateWrittenExamGenkit, returning placeholder:", error);
-      // Fallback to placeholder if Genkit fails
-      return {
-        examId: "exam_" + Date.now(),
-        title: `${payload.subject} - Sample Paper (Fallback)`,
-        durationMinutes: payload.durationMinutes,
-        totalMarks: payload.totalMarks ?? 100,
-        questions: [
-          { id: "q1", section: "A", marks: 5, type: 'short', questionText: "Define electric field with example." },
-          { id: "q2", section: "A", marks: 5, type: 'short', questionText: "State Ohm's law." },
-          { id: "q3", section: "B", marks: 10, type: 'long', questionText: "Explain electromagnetic induction with diagram." },
-          { id: "q4", section: "C", marks: 15, type: 'long', questionText: "Describe photoelectric effect and its applications." },
-        ],
-      };
+    console.error("Error in generateWrittenExamGenkit:", error);
+    // Throw the error to be handled by the API route, which will return a 500 status.
+    throw new Error("Failed to generate exam paper from AI model.");
   }
 }
 
+
+// Wrapper for the Genkit flow to evaluate an exam.
 export async function evaluateWrittenExamGenkit(payload: {
   examId: string;
   questions: { id: string; questionText: string; maxMarks: number }[];
   answers: { id: string; answerText: string }[];
-  studentInfo?: { uid?: string; name?: string };
 }): Promise<EvaluationResult> {
+    console.log("Calling Genkit to evaluate exam for examId:", payload.examId);
+    
+    // The Genkit flow expects simple arrays of strings.
     const evaluationInput: EvaluateWrittenExamInput = {
         questions: payload.questions.map(q => q.questionText),
         answers: payload.answers.map(a => a.answerText),
     };
   
-    const result = await evaluateExamFlow(evaluationInput);
-    
-    const perQuestionWithId = result.perQuestion.map((pq, index) => ({
-        ...pq,
-        id: payload.questions[index].id,
-        maxMarks: payload.questions[index].maxMarks,
-        marksObtained: pq.marks,
-    }));
+    try {
+        const result = await evaluateExamFlow(evaluationInput);
 
-    return {
-        ...result,
-        perQuestion: perQuestionWithId,
-    };
+        if (!result || !Array.isArray(result.perQuestion)) {
+            throw new Error("Invalid response structure from evaluation flow.");
+        }
+
+        // Combine the AI evaluation with the original question data (IDs, maxMarks).
+        const perQuestionWithId = result.perQuestion.map((pq, index) => {
+            const originalQuestion = payload.questions[index];
+            return {
+                ...pq,
+                id: originalQuestion.id,
+                maxMarks: originalQuestion.maxMarks,
+                marksObtained: pq.marks, // The AI returns 'marks', so we map it to 'marksObtained'
+            };
+        });
+
+        return {
+            ...result,
+            perQuestion: perQuestionWithId,
+        };
+
+    } catch (error) {
+         console.error("Error in evaluateWrittenExamGenkit:", error);
+         throw new Error("Failed to evaluate exam paper with AI model.");
+    }
 }

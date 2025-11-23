@@ -1,11 +1,16 @@
-// app/(main)/written-exam/page.tsx
-import dynamic from "next/dynamic";
-const WrittenExamClient = dynamic(() => import("../../../components/WrittenExamClient"), { ssr: false });
+import { WrittenExamClient } from "@/components/WrittenExamClient";
 
-export default function Page() {
+export default function WrittenExamPage() {
   return (
     <div className="w-full">
-      <h1 className="font-headline text-3xl font-bold text-foreground mb-6">Written Exams</h1>
+      <div className="mb-6">
+        <h1 className="font-headline text-3xl font-bold text-foreground">
+          AI Generated Exams
+        </h1>
+        <p className="text-muted-foreground">
+          Select a subject and let our AI create a custom exam for you.
+        </p>
+      </div>
       <WrittenExamClient />
     </div>
   );
