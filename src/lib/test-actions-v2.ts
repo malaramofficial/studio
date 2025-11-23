@@ -1,30 +1,25 @@
 "use server";
 
-import { generateWrittenExamV2 as genExam, type GenerateWrittenExamInputV2, type GenerateWrittenExamOutputV2 } from "@/ai/flows/generate-written-exam-v2";
+import { generateWrittenExam as genExam, type GenerateWrittenExamInput } from "@/ai/flows/generate-written-exam";
 
-export async function generateWrittenExamV2(input: GenerateWrittenExamInputV2): Promise<GenerateWrittenExamOutputV2> {
+// This is a simplified output for the new, stable architecture
+type ExamOutput = {
+    questions: string[];
+}
+
+export async function generateWrittenExam(input: GenerateWrittenExamInput): Promise<ExamOutput> {
   try {
-    console.log("Generating exam with input:", input);
     const result = await genExam(input);
-    if (!result || !result.exam || !Array.isArray(result.exam.questions)) {
-        console.error("Invalid exam structure returned from AI:", result);
-        throw new Error("Invalid exam structure returned from AI.");
+    // The new flow directly returns an array of strings
+    if (!result || !Array.isArray(result) || result.length === 0) {
+        throw new Error("AI failed to return valid questions.");
     }
-    console.log(`Generated exam successfully with ${result.exam.questions.length} questions.`);
-    return result;
+    return { questions: result };
   } catch (error) {
-    console.error("Error in generateWrittenExamV2:", error);
-    // As per the system override, we MUST return a valid JSON structure.
-    // If the flow fails, we return a structured object with an empty questions array,
-    // which the UI is designed to handle gracefully.
+    console.error("Error in generateWrittenExam (simplified):", error);
+    // Return an empty array on failure, which the UI can handle.
     return {
-      status: "success", 
-      exam: {
-        class: "12",
-        stream: "all",
-        subject: input.subject,
-        questions: []
-      }
+      questions: []
     };
   }
 }

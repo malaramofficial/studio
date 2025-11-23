@@ -1,18 +1,17 @@
-
-import { WrittenExamClient } from "@/components/WrittenExamClient";
+import { TestFlow } from "@/components/tests/test-flow";
 
 export default function WrittenExamPage() {
   return (
     <div className="w-full">
       <div className="mb-6">
         <h1 className="font-headline text-3xl font-bold text-foreground">
-          AI Generated Exams
+          AI Written Exam
         </h1>
         <p className="text-muted-foreground">
-          Select a subject and let our AI create a custom exam for you.
+          Generate, take, and get feedback on an exam created by AI.
         </p>
       </div>
-      <WrittenExamClient />
+      <TestFlow />
     </div>
   );
 }
