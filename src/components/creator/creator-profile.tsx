@@ -16,8 +16,7 @@ type CreatorProfileProps = {
 export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Using the correct and direct image link.
-  const creatorImageUrl = "https://i.ibb.co/gPdnC2s/IMG-20240321-220356.jpg";
+  const creatorImageUrl = "https://ibb.co/SwdBBvNx";
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -41,7 +40,7 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
         <Card className="rounded-2xl shadow-lg overflow-hidden">
           <div className="grid md:grid-cols-3">
             <div className="md:col-span-1 flex flex-col items-center justify-center p-8 bg-card/50 border-b md:border-b-0 md:border-r">
-              <div className="relative w-[200px] h-[200px] rounded-2xl border-4 border-primary shadow-lg overflow-hidden">
+              <div className="relative w-[200px] h-[200px] rounded-2xl shadow-lg overflow-hidden border-4 border-primary">
                 <Image
                   src={creatorImageUrl}
                   alt={creatorInfo.name}
