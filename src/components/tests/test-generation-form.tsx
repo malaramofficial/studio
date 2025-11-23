@@ -78,14 +78,12 @@ export function TestGenerationForm() {
     
     if (!subject) {
         console.error("Subject not found.");
-        // Optionally, show an error to the user
         return;
     }
 
     startTransition(async () => {
       const generatedExam = await generateWrittenExam({
         subject,
-        chapters: [], // Chapters are now determined by the AI based on the subject
         marks: 20,
         durationMinutes: 45,
       });
@@ -94,7 +92,7 @@ export function TestGenerationForm() {
   }
 
   const handleTestSubmit = (answers: { [key: string]: string }) => {
-    if (!examOutput) return;
+    if (!examOutput || !examOutput.exam) return;
     
     const questionsText = examOutput.exam.questions.map(q => q.question);
     const answerValues = Object.values(answers);
@@ -123,10 +121,12 @@ export function TestGenerationForm() {
     return <EvaluationDisplay evaluation={evaluation} onRetry={handleRetry} />;
   }
 
-  if (examOutput) {
+  if (examOutput && examOutput.exam) {
+    // Extract just the question text to pass to the interface component.
+    const questionsForInterface = examOutput.exam.questions.map(q => q.question);
     return (
       <TestInterface
-        questions={examOutput.exam.questions.map(q => q.question)}
+        questions={questionsForInterface}
         isSubmitting={isPending}
         onSubmit={handleTestSubmit}
       />
