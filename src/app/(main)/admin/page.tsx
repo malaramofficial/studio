@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, Lock, Unlock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const ADMIN_PIN = '7726';
 const BANNER_DOC_ID = 'main-banner';
@@ -53,26 +55,38 @@ export default function AdminPage() {
     setPin('');
   };
 
-  const handleSaveBanner = async () => {
+  const handleSaveBanner = () => {
     if (!firestore || !bannerDocRef) return;
+    
     setIsLoading(true);
-    try {
-      // NOTE: This uses the blocking `setDoc` because it's a critical admin action.
-      // We want to ensure it completes and provide feedback.
-      await setDoc(bannerDocRef, { id: BANNER_DOC_ID, imageUrl: bannerUrl }, { merge: true });
-      toast({
-        title: 'सफलतापूर्वक सहेजा गया',
-        description: 'बैनर सफलतापूर्वक अपडेट हो गया है।',
-      });
-    } catch (error: any) {
-      console.error('Error saving banner:', error);
-      toast({
-        variant: 'destructive',
-        title: 'सहेजने में विफल',
-        description: error.message || 'बैनर को सहेजते समय कोई त्रुटि हुई।',
-      });
-    }
-    setIsLoading(false);
+    const bannerDataToSave = { id: BANNER_DOC_ID, imageUrl: bannerUrl, isActive: true };
+
+    setDoc(bannerDocRef, bannerDataToSave, { merge: true })
+      .then(() => {
+        toast({
+            title: 'सफलतापूर्वक सहेजा गया',
+            description: 'बैनर सफलतापूर्वक अपडेट हो गया है।',
+        });
+        setIsLoading(false);
+      })
+      .catch((serverError) => {
+        // Create and emit the detailed, contextual error.
+        const permissionError = new FirestorePermissionError({
+          path: bannerDocRef.path,
+          operation: 'write', // 'set' with merge is a 'write' operation
+          requestResourceData: bannerDataToSave,
+        });
+
+        errorEmitter.emit('permission-error', permissionError);
+
+        // Also show a generic toast to the user. The detailed error will appear in the dev overlay.
+        toast({
+            variant: "destructive",
+            title: "सहेजने में विफल",
+            description: "आपके पास अनुमति नहीं है। विस्तृत जानकारी के लिए कंसोल देखें।",
+        });
+        setIsLoading(false);
+    });
   };
 
   if (!isAuthenticated) {
