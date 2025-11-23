@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const navItems = [
-  { href: "/home", icon: Home, label: "Home" },
-  { href: "/syllabus", icon: BookOpen, label: "Syllabus" },
-  { href: "/tests", icon: Newspaper, label: "Tests" },
-  { href: "/ai", icon: BrainCircuit, label: "AI Tutor" },
-  { href: "/creator", icon: User, label: "Creator" },
+  { href: "/home", label: "Home", icon: Home },
+  { href: "/syllabus", label: "Syllabus", icon: BookOpen },
+  { href: "/tests-v2", label: "Tests", icon: Newspaper },
+  { href: "/ai", label: "AI Tutor", icon: BrainCircuit },
+  { href: "/creator", label: "Creator", icon: User },
 ];
 
 export function AppSidebar() {

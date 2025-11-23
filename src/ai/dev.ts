@@ -9,3 +9,4 @@ import '@/ai/flows/get-creator-instagram.ts';
 import '@/ai/flows/evaluate-written-exam.ts';
 import '@/ai/flows/text-to-speech.ts';
 import '@/ai/flows/voice-input.ts';
+import '@/ai/flows/generate-written-exam-v2.ts';
