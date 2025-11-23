@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Image from "next/image";
@@ -112,7 +113,7 @@ export default function HomePage() {
           ) : (
              <Button asChild size="lg" className="w-full">
                 <Link href="/syllabus">
-                    सिलेबस देखें
+                    आज ही अपनी सीखने की यात्रा शुरू करें!
                 </Link>
              </Button>
           )}
