@@ -1,15 +1,11 @@
-import { ExamForm } from "@/components/tests/exam-form";
-import { Suspense } from "react";
+import dynamic from "next/dynamic";
+const WrittenExamClient = dynamic(() => import("../../../components/WrittenExamClient"), { ssr: false });
 
-export default function WrittenExamPage() {
+export default function Page() {
   return (
-    <div>
-      <h1 className="font-headline text-3xl font-bold text-foreground mb-6">
-        Written Exams
-      </h1>
-      <Suspense fallback={<div>Loading...</div>}>
-        <ExamForm />
-      </Suspense>
+    <div className="w-full">
+      <h1 className="font-headline text-3xl font-bold text-foreground mb-6">Written Exams</h1>
+      <WrittenExamClient />
     </div>
   );
 }
