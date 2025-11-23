@@ -23,6 +23,13 @@
           "type": "string",
           "description": "URL to the user's profile picture.",
           "format": "uri"
+        },
+        "learningProgress": {
+          "type": "object",
+          "description": "Tracks the user's learning progress, where keys are chapter IDs and values can be timestamps or booleans.",
+          "additionalProperties": {
+            "type": "boolean"
+          }
         }
       },
       "required": [

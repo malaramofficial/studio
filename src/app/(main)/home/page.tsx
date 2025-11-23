@@ -1,6 +1,9 @@
+
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, BrainCircuit, FileText, PlayCircle, Voicemail } from "lucide-react";
+import { ArrowRight, BookOpen, BrainCircuit, FileText, PlayCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +15,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useFirebase, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { useDoc } from "@/firebase/firestore/use-doc";
+import { syllabus } from "@/lib/syllabus";
+import { Progress } from "@/components/ui/progress";
 
 const quickActions = [
   { label: "AI से पूछें", icon: BrainCircuit, href: "/ai" },
@@ -46,8 +54,29 @@ const featureCards = [
   },
 ];
 
+// Calculate total chapters once
+const totalChapters = syllabus.flatMap(stream => stream.subjects.flatMap(subject => subject.units.flatMap(unit => unit.chapters))).length;
+
+
 export default function HomePage() {
-  const userName = "विद्यार्थी"; // Mock user name
+  const { user, firestore } = useFirebase();
+  const userName = user?.displayName || "विद्यार्थी";
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userData } = useDoc(userDocRef);
+
+  const { completedChapters, progressPercentage } = useMemoFirebase(() => {
+    const progress = userData?.learningProgress || {};
+    const completedCount = Object.keys(progress).length;
+    const percentage = totalChapters > 0 ? Math.round((completedCount / totalChapters) * 100) : 0;
+    return { completedChapters: completedCount, progressPercentage: percentage };
+  }, [userData]);
+
+
   const adBannerImage = PlaceHolderImages.find(
     (img) => img.id === "ad-banner"
   )!;
@@ -63,6 +92,33 @@ export default function HomePage() {
           RBSE Class 12
         </Badge>
       </div>
+
+      {/* Continue Learning Section */}
+      <Card className="rounded-2xl shadow-lg">
+        <CardHeader>
+          <CardTitle className="font-headline text-2xl">पढ़ाई जारी रखें</CardTitle>
+          <CardDescription>
+            {progressPercentage > 0
+              ? `आपने ${totalChapters} में से ${completedChapters} चैप्टर पूरे कर लिए हैं।`
+              : "अपनी सीखने की यात्रा आज ही शुरू करें!"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {progressPercentage > 0 ? (
+            <div>
+              <Progress value={progressPercentage} className="w-full" />
+              <p className="text-right text-sm text-muted-foreground mt-2">{progressPercentage}% पूरा हुआ</p>
+            </div>
+          ) : (
+             <Button asChild size="lg" className="w-full">
+                <Link href="/syllabus">
+                    सिलेबस देखें
+                </Link>
+             </Button>
+          )}
+        </CardContent>
+      </Card>
+
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-4">
