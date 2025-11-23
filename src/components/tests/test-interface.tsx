@@ -13,8 +13,8 @@ type TestInterfaceProps = {
 };
 
 export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInterfaceProps) {
-  // Flexible parsing of questions. Handles different numbering styles (e.g., "1.", "1)", "1 ").
-  const questions = examContent.split('\n').filter(line => /^\s*\d+[\.\)]?\s/.test(line.trim()));
+  // More flexible parsing for questions. Handles numbering like "1.", "1)", or just "1 " followed by text.
+  const questions = examContent.split('\n').filter(line => /^\s*\d+[\.\)]?\s+/.test(line.trim()));
   const [answers, setAnswers] = useState<{ [key: string]: string }>(
     questions.reduce((acc, _, index) => ({ ...acc, [index]: "" }), {})
   );
@@ -39,7 +39,7 @@ export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInter
             {questions.length > 0 ? (
               questions.map((question, index) => (
                 <div key={index} className="space-y-2">
-                  <p className="font-semibold">{question}</p>
+                  <p className="font-semibold whitespace-pre-wrap">{question}</p>
                   <Textarea
                     value={answers[index]}
                     onChange={(e) => handleAnswerChange(index, e.target.value)}

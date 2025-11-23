@@ -32,7 +32,7 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateWrittenExamOutputSchema},
   prompt: `You are an expert teacher creating an exam for RBSE Class 12 students.
 
-The exam should be based strictly on the RBSE syllabus for the given subject and chapters.
+The exam must be based strictly on the RBSE syllabus for the given subject and chapters.
 
 Subject: {{{subject}}}
 Chapters: {{#each chapters}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
@@ -43,6 +43,8 @@ The exam should be in RBSE style, with the following sections:
 - Section A: Short answer questions
 - Section B: Long answer questions
 - Section C: Very long answer questions
+
+CRITICAL: Each question must start with a number followed by a period (e.g., "1.", "2.", "3.").
 
 Include clear instructions for each section and the marks for each question.
 
