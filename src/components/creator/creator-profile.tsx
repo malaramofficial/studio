@@ -49,7 +49,6 @@ export function CreatorProfile({ creatorInfo }: CreatorProfileProps) {
                   height={200}
                   className="rounded-full border-4 border-primary shadow-lg"
                   data-ai-hint="creator portrait male"
-                  priority
                 />
                  <span className="absolute bottom-2 right-2 block h-6 w-6 rounded-full bg-green-500 border-2 border-card ring-2 ring-green-500" />
               </div>
