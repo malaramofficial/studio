@@ -13,13 +13,15 @@ export function TestFlow() {
     "generate"
   );
   const [questions, setQuestions] = useState<string[]>([]);
+  const [subject, setSubject] = useState<string>("");
   const [evaluation, setEvaluation] = useState<EvaluateWrittenExamOutput | null>(null);
   const [isGenerating, startGenerationTransition] = useTransition();
   const [isEvaluating, startEvaluationTransition] = useTransition();
 
-  const handleGenerate = (subject: string) => {
+  const handleGenerate = (selectedSubject: string) => {
+    setSubject(selectedSubject);
     startGenerationTransition(async () => {
-      const result = await generateWrittenExam({ subject });
+      const result = await generateWrittenExam({ subject: selectedSubject });
       if (result && result.questions && result.questions.length > 0) {
         setQuestions(result.questions);
         setExamState("take");
@@ -29,6 +31,20 @@ export function TestFlow() {
       }
     });
   };
+
+  const handleRegenerate = () => {
+    if (!subject) return;
+    startGenerationTransition(async () => {
+      const result = await generateWrittenExam({ subject });
+      if (result && result.questions && result.questions.length > 0) {
+        setQuestions(result.questions);
+        // Reset answers for the new questions
+        setExamState("take"); 
+      } else {
+        console.error("Failed to regenerate exam.");
+      }
+    });
+  }
 
   const handleSubmit = (answers: { [key: string]: string }) => {
     startEvaluationTransition(async () => {
@@ -42,6 +58,7 @@ export function TestFlow() {
   const handleRetry = () => {
     setQuestions([]);
     setEvaluation(null);
+    setSubject("");
     setExamState("generate");
   };
 
@@ -53,8 +70,10 @@ export function TestFlow() {
     return (
       <TestInterface
         questions={questions}
-        isSubmitting={isEvaluating}
+        isSubmitting={isEvaluating || isGenerating}
         onSubmit={handleSubmit}
+        onRegenerate={handleRegenerate}
+        isRegenerating={isGenerating}
       />
     );
   }

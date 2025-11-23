@@ -4,15 +4,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, RefreshCw } from "lucide-react";
 
 type TestInterfaceProps = {
   questions: string[];
   isSubmitting: boolean;
   onSubmit: (answers: { [key: string]: string }) => void;
+  onRegenerate: () => void;
+  isRegenerating: boolean;
 };
 
-export function TestInterface({ questions, isSubmitting, onSubmit }: TestInterfaceProps) {
+export function TestInterface({ questions, isSubmitting, onSubmit, onRegenerate, isRegenerating }: TestInterfaceProps) {
   const [answers, setAnswers] = useState<{ [key: string]: string }>(
     questions.reduce((acc, _, index) => ({ ...acc, [index]: "" }), {})
   );
@@ -25,6 +27,12 @@ export function TestInterface({ questions, isSubmitting, onSubmit }: TestInterfa
     e.preventDefault();
     onSubmit(answers);
   };
+  
+  // Reset answers when questions change (on regeneration)
+  useState(() => {
+    setAnswers(questions.reduce((acc, _, index) => ({ ...acc, [index]: "" }), {}));
+  }, [questions]);
+
 
   return (
     <Card className="rounded-2xl shadow-lg">
@@ -34,12 +42,16 @@ export function TestInterface({ questions, isSubmitting, onSubmit }: TestInterfa
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-6">
-            {questions && questions.length > 0 ? (
+            {isRegenerating ? (
+                <div className="flex justify-center items-center h-48">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+            ) : questions && questions.length > 0 ? (
               questions.map((question, index) => (
                 <div key={index} className="space-y-2">
                   <p className="font-semibold whitespace-pre-wrap">{`${index + 1}. ${question}`}</p>
                   <Textarea
-                    value={answers[index]}
+                    value={answers[index] || ''}
                     onChange={(e) => handleAnswerChange(index, e.target.value)}
                     placeholder="अपना उत्तर यहाँ लिखें..."
                     className="min-h-[100px] text-base"
@@ -55,8 +67,16 @@ export function TestInterface({ questions, isSubmitting, onSubmit }: TestInterfa
             )}
           </div>
           {questions && questions.length > 0 && (
-            <CardFooter className="p-0 pt-4">
-                <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
+            <CardFooter className="p-0 pt-4 flex flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" onClick={onRegenerate} disabled={isSubmitting || isRegenerating} className="w-full">
+                    {isRegenerating ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                    )}
+                    Regenerate Paper
+                </Button>
+                <Button type="submit" disabled={isSubmitting || isRegenerating} className="w-full">
                 {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
