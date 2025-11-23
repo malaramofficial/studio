@@ -13,7 +13,7 @@ import {z} from 'genkit';
 
 const GenerateWrittenExamInputSchema = z.object({
   subject: z.string().describe('The subject of the exam.'),
-  chapters: z.array(z.string()).describe('The chapters to include in the exam.'),
+  chapters: z.array(z.string()).optional().describe('The chapters to include in the exam. If empty, cover the whole subject.'),
   marks: z.number().describe('The total marks for the exam.'),
   durationMinutes: z.number().describe('The duration of the exam in minutes.'),
 });
@@ -50,11 +50,13 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateWrittenExamOutputSchema},
   prompt: `You are an expert teacher creating an exam for RBSE Class 12 students.
 
-The exam must be based strictly on the RBSE syllabus for the given subject and chapters.
+The exam must be based strictly on the RBSE syllabus for the given subject. If no specific chapters are provided, create a balanced paper from the entire syllabus for that subject.
 
 Class: 12
 Subject: {{{subject}}}
+{{#if chapters}}
 Chapters: {{#each chapters}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}
+{{/if}}
 Total Marks: {{{marks}}}
 Duration: {{{durationMinutes}}} minutes
 

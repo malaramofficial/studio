@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { syllabus } from "@/lib/syllabus";
-import type { Stream, Subject, Unit, Chapter } from "@/lib/types";
+import type { Stream, Subject } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { generateWrittenExam, evaluateWrittenExam } from "@/lib/test-actions";
 import { TestInterface } from "./test-interface";
@@ -35,8 +35,6 @@ import type { GenerateWrittenExamOutput } from "@/ai/flows/generate-written-exam
 const formSchema = z.object({
   streamId: z.string().min(1, "Please select a stream."),
   subjectId: z.string().min(1, "Please select a subject."),
-  unitId: z.string().optional(),
-  chapterId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -52,85 +50,42 @@ export function TestGenerationForm() {
     defaultValues: {
       streamId: syllabus[0].id,
       subjectId: syllabus[0].subjects[0].id,
-      unitId: "",
-      chapterId: "",
     },
   });
 
   useEffect(() => {
     const stream = searchParams.get('stream');
     const subject = searchParams.get('subject');
-    const unit = searchParams.get('unit');
-    const chapter = searchParams.get('chapter');
     
     if (stream) form.setValue("streamId", stream);
     if (subject) form.setValue("subjectId", subject);
-    if (unit) form.setValue("unitId", unit);
-    if (chapter) form.setValue("chapterId", chapter);
   }, [searchParams, form]);
 
   const streamId = form.watch("streamId");
-  const subjectId = form.watch("subjectId");
-  const unitId = form.watch("unitId");
 
   const selectedStream = syllabus.find((s) => s.id === streamId);
-  const selectedSubject = selectedStream?.subjects.find(
-    (s) => s.id === subjectId
-  );
-  const selectedUnit = selectedSubject?.units.find(
-    u => u.id === unitId
-  );
-
+  
   const handleStreamChange = (streamId: string) => {
     form.setValue("streamId", streamId);
     const firstSubject = syllabus.find((s) => s.id === streamId)?.subjects[0];
     if (firstSubject) {
       form.setValue("subjectId", firstSubject.id);
-      form.setValue("unitId", "");
-      form.setValue("chapterId", "");
     }
   };
-
-  const handleSubjectChange = (subjectId: string) => {
-    form.setValue("subjectId", subjectId);
-    form.setValue("unitId", "");
-    form.setValue("chapterId", "");
-  };
-
-  const handleUnitChange = (unitId: string) => {
-    form.setValue("unitId", unitId);
-    form.setValue("chapterId", "");
-  }
 
   function onSubmit(values: FormValues) {
-    const subject = selectedSubject?.name;
-    let chapters: string[] = [];
-
-    const unit = selectedSubject?.units.find(u => u.id === values.unitId);
-
-    if (values.chapterId && values.chapterId !== "all") {
-        const chapter = unit?.chapters.find(c => c.id === values.chapterId)?.name;
-        if (chapter) {
-            chapters.push(chapter);
-        }
-    } else if (unit) {
-        if (unit.chapters.length > 0) {
-            chapters = unit.chapters.map(c => c.name);
-        } else {
-            // If unit has no chapters, use the unit name itself
-            chapters.push(unit.name);
-        }
-    }
-
-    if (!subject || chapters.length === 0) {
-        console.error("Subject not found or no chapters selected.");
+    const subject = selectedStream?.subjects.find(s => s.id === values.subjectId)?.name;
+    
+    if (!subject) {
+        console.error("Subject not found.");
+        // Optionally, show an error to the user
         return;
     }
 
     startTransition(async () => {
       const generatedExam = await generateWrittenExam({
         subject,
-        chapters: chapters,
+        chapters: [], // Chapters are now determined by the AI based on the subject
         marks: 20,
         durationMinutes: 45,
       });
@@ -161,8 +116,6 @@ export function TestGenerationForm() {
     form.reset({
       streamId: syllabus[0].id,
       subjectId: syllabus[0].subjects[0].id,
-      unitId: "",
-      chapterId: "",
     });
   }
 
@@ -171,10 +124,9 @@ export function TestGenerationForm() {
   }
 
   if (examOutput) {
-    const questionsText = examOutput.exam.questions.map(q => q.question);
     return (
       <TestInterface
-        questions={questionsText}
+        questions={examOutput.exam.questions.map(q => q.question)}
         isSubmitting={isPending}
         onSubmit={handleTestSubmit}
       />
@@ -184,7 +136,10 @@ export function TestGenerationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <p className="text-muted-foreground">
+          Select a subject and our AI will generate a balanced test paper for you based on the RBSE syllabus.
+        </p>
+        <div className="grid md:grid-cols-2 gap-6">
           <FormField
             control={form.control}
             name="streamId"
@@ -219,7 +174,7 @@ export function TestGenerationForm() {
               <FormItem>
                 <FormLabel>Subject</FormLabel>
                 <Select
-                  onValueChange={handleSubjectChange}
+                  onValueChange={field.onChange}
                   value={field.value}
                 >
                   <FormControl>
@@ -239,64 +194,6 @@ export function TestGenerationForm() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="unitId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Unit</FormLabel>
-                <Select
-                  onValueChange={handleUnitChange}
-                  value={field.value}
-                  disabled={!subjectId}
-                >
-                  <FormControl>
-                    <SelectTrigger className="h-12 text-base">
-                      <SelectValue placeholder="Select a unit" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {selectedSubject?.units.map((unit: Unit) => (
-                      <SelectItem key={unit.id} value={unit.id}>
-                        {unit.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="chapterId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Chapter (Optional)</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!unitId || !selectedUnit || selectedUnit.chapters.length === 0}
-                >
-                  <FormControl>
-                    <SelectTrigger className="h-12 text-base">
-                      <SelectValue placeholder="All Chapters in Unit" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="all">All Chapters in Unit</SelectItem>
-                    {selectedUnit?.chapters.map((chapter: Chapter) => (
-                      <SelectItem key={chapter.id} value={chapter.id}>
-                        {chapter.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>Leave blank or select all to test the whole unit.</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
         <Button type="submit" disabled={isPending} size="lg">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -306,5 +203,3 @@ export function TestGenerationForm() {
     </Form>
   );
 }
-
-    
