@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { syllabus } from '@/lib/syllabus';
-import type { Stream, Subject, Chapter } from '@/lib/types';
+import type { Stream, Subject, Unit, Chapter } from '@/lib/types';
 import {
   Select,
   SelectContent,
@@ -12,22 +12,21 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookCopy, FileText } from 'lucide-react';
+import { BookCopy, FileText, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 
 export function SyllabusBrowser() {
   const [selectedStreamId, setSelectedStreamId] = useState<string>(
     syllabus[0].id
   );
+  
   const [selectedSubjectId, setSelectedSubjectId] = useState<string>(
     syllabus[0].subjects[0].id
   );
 
   const selectedStream = syllabus.find((s) => s.id === selectedStreamId);
-  const selectedSubject = selectedStream?.subjects.find(
-    (s) => s.id === selectedSubjectId
-  );
-
+  
   const handleStreamChange = (streamId: string) => {
     setSelectedStreamId(streamId);
     const firstSubjectId = syllabus.find((s) => s.id === streamId)
@@ -36,6 +35,10 @@ export function SyllabusBrowser() {
       setSelectedSubjectId(firstSubjectId);
     }
   };
+
+  const selectedSubject = selectedStream?.subjects.find(
+    (s) => s.id === selectedSubjectId
+  );
 
   return (
     <div className="space-y-8">
@@ -80,43 +83,68 @@ export function SyllabusBrowser() {
       </div>
 
       <div>
-        <h2 className="font-headline text-2xl font-bold mb-4">अध्याय (Chapters)</h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {selectedSubject?.chapters.map((chapter: Chapter, index: number) => (
-            <Card key={chapter.id} className="rounded-2xl shadow-lg flex flex-col">
-              <CardHeader>
-                <CardTitle className="font-headline text-primary">
-                  अध्याय {index + 1}
-                </CardTitle>
-                <CardDescription className="text-lg font-semibold pt-1 text-foreground">
-                  {chapter.name}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='flex-grow'>
-                <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  {chapter.topics.slice(0, 2).map((topic) => (
-                    <li key={topic.id}>{topic.name}</li>
-                  ))}
-                  {chapter.topics.length > 2 && <li>और भी...</li>}
-                </ul>
-              </CardContent>
-              <CardFooter className="flex gap-2">
-                <Button asChild className="w-full">
-                    <Link href={`/ai?topic=${chapter.name}`}>
-                        <BookCopy className="mr-2 h-4 w-4" />
-                        पढ़ना शुरू करें
+        <h2 className="font-headline text-2xl font-bold mb-4">Units and Chapters</h2>
+        <Accordion type="single" collapsible className="w-full space-y-4">
+          {selectedSubject?.units.map((unit: Unit, unitIndex: number) => (
+            <AccordionItem value={`item-${unit.id}`} key={unit.id} className="bg-card rounded-2xl shadow-lg border-b-0">
+              <AccordionTrigger className="p-6 text-lg font-headline hover:no-underline">
+                <div className="flex justify-between w-full items-center">
+                    <span>Unit {unitIndex + 1}: {unit.name}</span>
+                    <span className="text-sm font-medium text-muted-foreground mr-4">Marks: {unit.marks}</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="p-6 pt-0">
+                {unit.chapters.length > 0 ? (
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {unit.chapters.map((chapter: Chapter, chapterIndex: number) => (
+                      <Card key={chapter.id} className="rounded-xl flex flex-col bg-background/50">
+                        <CardHeader>
+                          <CardTitle className="font-headline text-primary">
+                            Chapter {chapterIndex + 1}
+                          </CardTitle>
+                          <CardDescription className="text-base font-semibold pt-1 text-foreground">
+                            {chapter.name}
+                          </CardDescription>
+                        </CardHeader>
+                        {chapter.topics.length > 0 && (
+                          <CardContent className='flex-grow'>
+                            <ul className="list-disc list-inside text-muted-foreground space-y-1">
+                              {chapter.topics.slice(0, 2).map((topic) => (
+                                <li key={topic.id}>{topic.name}</li>
+                              ))}
+                              {chapter.topics.length > 2 && <li>and more...</li>}
+                            </ul>
+                          </CardContent>
+                        )}
+                        <CardFooter className="flex gap-2">
+                          <Button asChild className="w-full" size="sm">
+                              <Link href={`/ai?topic=${encodeURIComponent(chapter.name)}`}>
+                                  <BookCopy className="mr-2 h-4 w-4" />
+                                  Start
+                              </Link>
+                          </Button>
+                          <Button asChild variant="secondary" className="w-full" size="sm">
+                              <Link href={`/tests?chapter=${chapter.id}`}>
+                                  <FileText className="mr-2 h-4 w-4" />
+                                  Test
+                              </Link>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className='text-muted-foreground'>No specific chapters listed for this unit. You can still generate a test for the whole unit.</p>
+                )}
+                 <Button asChild variant="ghost" className="mt-4 text-primary hover:text-primary">
+                    <Link href={`/tests?unit=${unit.id}&subject=${selectedSubjectId}&stream=${selectedStreamId}`}>
+                      Test this Unit <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>
-                </Button>
-                <Button asChild variant="secondary" className="w-full">
-                    <Link href={`/tests?chapter=${chapter.id}`}>
-                        <FileText className="mr-2 h-4 w-4" />
-                        टेस्ट दें
-                    </Link>
-                </Button>
-              </CardFooter>
-            </Card>
+                  </Button>
+              </AccordionContent>
+            </AccordionItem>
           ))}
-        </div>
+        </Accordion>
       </div>
     </div>
   );

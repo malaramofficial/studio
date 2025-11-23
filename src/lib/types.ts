@@ -1,3 +1,4 @@
+
 export type Topic = {
   id: string;
   name: string;
@@ -9,14 +10,21 @@ export type Chapter = {
   topics: Topic[];
 };
 
-export type Subject = {
+export type Unit = {
   id: string;
   name: string;
+  marks: number;
   chapters: Chapter[];
 };
 
-export type Stream = {
+export type Subject = {
   id: string;
+  name: string;
+  units: Unit[];
+};
+
+export type Stream = {
+  id:string;
   name: string;
   subjects: Subject[];
 };

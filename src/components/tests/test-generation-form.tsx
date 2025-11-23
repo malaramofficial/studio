@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useSearchParams } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { syllabus } from "@/lib/syllabus";
-import type { Stream, Subject, Chapter } from "@/lib/types";
+import type { Stream, Subject, Unit, Chapter } from "@/lib/types";
 import { Loader2 } from "lucide-react";
 import { generateWrittenExam, evaluateWrittenExam } from "@/lib/test-actions";
 import { TestInterface } from "./test-interface";
@@ -33,7 +34,8 @@ import type { EvaluateWrittenExamOutput } from "@/ai/flows/evaluate-written-exam
 const formSchema = z.object({
   streamId: z.string().min(1, "Please select a stream."),
   subjectId: z.string().min(1, "Please select a subject."),
-  chapterId: z.string().min(1, "Please select a chapter."),
+  unitId: z.string().optional(),
+  chapterId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,22 +44,40 @@ export function TestGenerationForm() {
   const [isPending, startTransition] = useTransition();
   const [examContent, setExamContent] = useState<string | null>(null);
   const [evaluation, setEvaluation] = useState<EvaluateWrittenExamOutput | null>(null);
+  const searchParams = useSearchParams();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       streamId: syllabus[0].id,
       subjectId: syllabus[0].subjects[0].id,
-      chapterId: syllabus[0].subjects[0].chapters[0].id,
+      unitId: "",
+      chapterId: "",
     },
   });
 
+  useEffect(() => {
+    const stream = searchParams.get('stream');
+    const subject = searchParams.get('subject');
+    const unit = searchParams.get('unit');
+    const chapter = searchParams.get('chapter');
+    
+    if (stream) form.setValue("streamId", stream);
+    if (subject) form.setValue("subjectId", subject);
+    if (unit) form.setValue("unitId", unit);
+    if (chapter) form.setValue("chapterId", chapter);
+  }, [searchParams, form]);
+
   const streamId = form.watch("streamId");
   const subjectId = form.watch("subjectId");
+  const unitId = form.watch("unitId");
 
   const selectedStream = syllabus.find((s) => s.id === streamId);
   const selectedSubject = selectedStream?.subjects.find(
     (s) => s.id === subjectId
+  );
+  const selectedUnit = selectedSubject?.units.find(
+    u => u.id === unitId
   );
 
   const handleStreamChange = (streamId: string) => {
@@ -65,30 +85,45 @@ export function TestGenerationForm() {
     const firstSubject = syllabus.find((s) => s.id === streamId)?.subjects[0];
     if (firstSubject) {
       form.setValue("subjectId", firstSubject.id);
-      form.setValue("chapterId", firstSubject.chapters[0]?.id || "");
+      form.setValue("unitId", firstSubject.units[0]?.id || "");
+      form.setValue("chapterId", "");
     }
   };
 
   const handleSubjectChange = (subjectId: string) => {
     form.setValue("subjectId", subjectId);
     const subject = selectedStream?.subjects.find((s) => s.id === subjectId);
-    form.setValue("chapterId", subject?.chapters[0]?.id || "");
+    form.setValue("unitId", subject?.units[0]?.id || "");
+    form.setValue("chapterId", "");
   };
+
+  const handleUnitChange = (unitId: string) => {
+    form.setValue("unitId", unitId);
+    form.setValue("chapterId", "");
+  }
 
   function onSubmit(values: FormValues) {
     const subject = selectedSubject?.name;
-    const chapter = selectedSubject?.chapters.find(
-      (c) => c.id === values.chapterId
-    )?.name;
+    let chapters: string[] = [];
 
-    if (!subject || !chapter) return;
+    if (values.chapterId) {
+        const chapter = selectedUnit?.chapters.find(c => c.id === values.chapterId)?.name;
+        if(chapter) chapters.push(chapter);
+    } else if (values.unitId) {
+        const unit = selectedSubject?.units.find(u => u.id === values.unitId);
+        if(unit) {
+            chapters = unit.chapters.map(c => c.name).length > 0 ? unit.chapters.map(c => c.name) : [unit.name];
+        }
+    }
+
+    if (!subject || chapters.length === 0) return;
 
     startTransition(async () => {
       const content = await generateWrittenExam({
         subject,
-        chapters: [chapter],
-        marks: 20, // Default marks for now
-        durationMinutes: 45, // Default duration
+        chapters: chapters,
+        marks: 20,
+        durationMinutes: 45,
       });
       setExamContent(content);
     });
@@ -97,7 +132,6 @@ export function TestGenerationForm() {
   const handleTestSubmit = (answers: { [key: string]: string }) => {
     if (!examContent) return;
 
-    // Simple parsing of questions from the exam content
     const questions = examContent.split('\n').filter(line => /^\d+\./.test(line.trim()));
     const answerValues = Object.values(answers);
 
@@ -113,7 +147,12 @@ export function TestGenerationForm() {
   const handleRetry = () => {
     setExamContent(null);
     setEvaluation(null);
-    form.reset();
+    form.reset({
+      streamId: syllabus[0].id,
+      subjectId: syllabus[0].subjects[0].id,
+      unitId: "",
+      chapterId: "",
+    });
   }
 
   if (evaluation) {
@@ -133,7 +172,7 @@ export function TestGenerationForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <FormField
             control={form.control}
             name="streamId"
@@ -142,7 +181,7 @@ export function TestGenerationForm() {
                 <FormLabel>Stream</FormLabel>
                 <Select
                   onValueChange={handleStreamChange}
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger className="h-12 text-base">
@@ -190,23 +229,23 @@ export function TestGenerationForm() {
           />
           <FormField
             control={form.control}
-            name="chapterId"
+            name="unitId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Chapter</FormLabel>
+                <FormLabel>Unit</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
+                  onValueChange={handleUnitChange}
                   value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger className="h-12 text-base">
-                      <SelectValue placeholder="Select a chapter" />
+                      <SelectValue placeholder="Select a unit" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {selectedSubject?.chapters.map((chapter: Chapter) => (
-                      <SelectItem key={chapter.id} value={chapter.id}>
-                        {chapter.name}
+                    {selectedSubject?.units.map((unit: Unit) => (
+                      <SelectItem key={unit.id} value={unit.id}>
+                        {unit.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -215,10 +254,37 @@ export function TestGenerationForm() {
               </FormItem>
             )}
           />
+           <FormField
+            control={form.control}
+            name="chapterId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Chapter (Optional)</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value}
+                  disabled={!unitId || !selectedUnit || selectedUnit.chapters.length === 0}
+                >
+                  <FormControl>
+                    <SelectTrigger className="h-12 text-base">
+                      <SelectValue placeholder="Select a chapter" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="">All Chapters in Unit</SelectItem>
+                    {selectedUnit?.chapters.map((chapter: Chapter) => (
+                      <SelectItem key={chapter.id} value={chapter.id}>
+                        {chapter.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>Leave blank to test the whole unit.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
-        <FormDescription>
-          Select a stream, subject, and chapter to generate a practice exam.
-        </FormDescription>
         <Button type="submit" disabled={isPending} size="lg">
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Generate Exam
