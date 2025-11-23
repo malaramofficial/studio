@@ -197,6 +197,25 @@ export const syllabus: Syllabus = [
           {id: 'u2', name: 'Indian Economic Development', marks: 40, chapters: []},
         ]
       },
+      {
+        id: 'entrepreneurship',
+        name: 'Entrepreneurship',
+        units: [
+          { id: 'u1', name: 'Entrepreneurial Opportunity', marks: 15, chapters: [] },
+          { id: 'u2', name: 'Entrepreneurial Planning', marks: 20, chapters: [] },
+          { id: 'u3', name: 'Enterprise Marketing', marks: 20, chapters: [] },
+          { id: 'u4', name: 'Enterprise Growth Strategies', marks: 15, chapters: [] },
+        ],
+      },
+      {
+        id: 'informatics-practices',
+        name: 'Informatics Practices',
+        units: [
+          { id: 'u1', name: 'Data Handling using Pandas and Data Visualization', marks: 30, chapters: [] },
+          { id: 'u2', name: 'Database Query using SQL', marks: 25, chapters: [] },
+          { id: 'u3', name: 'Introduction to Computer Networks', marks: 15, chapters: [] },
+        ],
+      },
     ],
   },
   {
@@ -281,8 +300,43 @@ export const syllabus: Syllabus = [
             {id: 'u2', name: 'Writing', marks: 16, chapters: []},
             {id: 'u3', name: 'Literary Terms', marks: 8, chapters: []},
             {id: 'u4', name: 'Textbook - Kaleidoscope', marks: 24, chapters: []},
-            {id: 'u5', 'name': 'Fiction (A Tiger for Malgudi or The Financial Expert)', marks: 16, chapters: []}
+            {id: 'u5', name: 'Fiction (A Tiger for Malgudi or The Financial Expert)', marks: 16, chapters: []}
         ]
+      },
+      {
+        id: 'sanskrit-literature',
+        name: 'Sanskrit Literature',
+        units: [
+          { id: 'u1', name: 'अपठित-अवबोधनम्', marks: 12, chapters: [] },
+          { id: 'u2', name: 'रचनात्मक-कार्यम्', marks: 16, chapters: [] },
+          { id: 'u3', name: 'पठित-अवबोधनम्', marks: 40, chapters: [] },
+          { id: 'u4', name: 'सामान्यः संस्कृत-साहित्य-परिचयः', marks: 12, chapters: [] },
+        ],
+      },
+      {
+        id: 'physical-education',
+        name: 'Physical Education',
+        units: [
+          { id: 'u1', name: 'Management of Sporting Events', marks: 9, chapters: [] },
+          { id: 'u2', name: 'Children & Women in Sports', marks: 7, chapters: [] },
+          { id: 'u3', name: 'Yoga as Preventive measure for Lifestyle Disease', marks: 8, chapters: [] },
+          { id: 'u4', name: 'Physical Education & Sports for CWSN', marks: 8, chapters: [] },
+          { id: 'u5', name: 'Sports & Nutrition', marks: 8, chapters: [] },
+          { id: 'u6', name: 'Test & Measurement in Sports', marks: 9, chapters: [] },
+          { id: 'u7', name: 'Physiology & Injuries in Sport', marks: 8, chapters: [] },
+          { id: 'u8', name: 'Biomechanics & Sports', marks: 10, chapters: [] },
+          { id: 'u9', name: 'Psychology & Sports', marks: 7, chapters: [] },
+          { id: 'u10', name: 'Training in Sports', marks: 6, chapters: [] },
+        ],
+      },
+      {
+        id: 'music',
+        name: 'Music',
+        units: [
+          { id: 'u1', name: 'History of Indian Music', marks: 15, chapters: [] },
+          { id: 'u2', name: 'Theory of Music', marks: 25, chapters: [] },
+          { id: 'u3', name: 'Practical & Composition', marks: 30, chapters: [] },
+        ],
       },
     ],
   },

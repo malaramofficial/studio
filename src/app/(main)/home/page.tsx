@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BookOpen, BrainCircuit, FileText, PlayCircle } from "lucide-react";
+import { ArrowRight, BookOpen, BrainCircuit, FileText, PlayCircle, Voicemail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,10 +39,10 @@ const featureCards = [
     imageId: "feature-ai-tutor",
   },
   {
-    title: "निर्माता",
-    description: "इस ऐप के निर्माता, माला राम के बारे में और जानें।",
-    href: "/creator",
-    imageId: "feature-creator",
+    title: "ऑडियो नोट्स",
+    description: "अध्ययन सामग्री को सुनें, अपनी सुनने की क्षमता से सीखें।",
+    href: "/audio-notes",
+    imageId: "feature-audio-notes",
   },
 ];
 

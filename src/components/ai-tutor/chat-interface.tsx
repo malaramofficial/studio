@@ -4,8 +4,8 @@ import { useState, useRef, useEffect, useTransition } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BrainCircuit, Send, User, Loader2, Instagram } from "lucide-react";
-import { getAiTutorExplanation } from "@/lib/actions";
+import { BrainCircuit, Send, User, Loader2, Instagram, Mic, Square } from "lucide-react";
+import { getAiTutorExplanation, getVoiceInput } from "@/lib/actions";
 import { useSearchParams } from "next/navigation";
 import { InstagramModal } from "@/components/creator/instagram-modal";
 
@@ -21,6 +21,9 @@ export function ChatInterface() {
   const [input, setInput] = useState("");
   const [isPending, startTransition] = useTransition();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   
@@ -43,20 +46,17 @@ export function ChatInterface() {
     }
   }, [searchParams]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
+  const processAndSendMessage = (text: string) => {
     const userMessage: Message = {
       id: Date.now(),
       role: "user",
-      content: input,
+      content: text,
     };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
     startTransition(async () => {
-      const response = await getAiTutorExplanation(input);
+      const response = await getAiTutorExplanation(text);
       const assistantMessage: Message = {
         id: Date.now() + 1,
         role: "assistant",
@@ -65,6 +65,63 @@ export function ChatInterface() {
       };
       setMessages((prev) => [...prev, assistantMessage]);
     });
+  }
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    processAndSendMessage(input);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setIsRecording(true);
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.addEventListener("dataavailable", (event) => {
+        audioChunksRef.current.push(event.data);
+      });
+
+      mediaRecorderRef.current.start();
+    } catch (err) {
+      console.error("Error accessing microphone:", err);
+      // You might want to show a toast to the user here
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.addEventListener("stop", async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result as string;
+          startTransition(async () => {
+            const { text } = await getVoiceInput(base64Audio);
+            if(text) {
+              processAndSendMessage(text);
+            }
+          });
+        };
+
+        setIsRecording(false);
+        // Stop all tracks to release the microphone
+        mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+      });
+
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const handleVoiceButtonClick = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   };
 
   return (
@@ -131,6 +188,10 @@ export function ChatInterface() {
             className="flex-1 h-12 text-base rounded-xl"
             disabled={isPending}
           />
+          <Button type="button" size="icon" className="h-12 w-12 rounded-xl" onClick={handleVoiceButtonClick} disabled={isPending}>
+            {isRecording ? <Square className="h-5 w-5 text-red-500" /> : <Mic className="h-5 w-5" />}
+            <span className="sr-only">{isRecording ? "Stop Recording" : "Start Recording"}</span>
+          </Button>
           <Button type="submit" size="icon" className="h-12 w-12 rounded-xl" disabled={isPending}>
             <Send className="h-5 w-5" />
             <span className="sr-only">Send</span>
