@@ -163,9 +163,10 @@ export function TestGenerationForm() {
   }
 
   if (examOutput) {
+    const questionsText = examOutput.exam.questions.map(q => q.question);
     return (
       <TestInterface
-        questions={examOutput.exam.questions.map(q => q.question)}
+        questions={questionsText}
         isSubmitting={isPending}
         onSubmit={handleTestSubmit}
       />
@@ -270,7 +271,7 @@ export function TestGenerationForm() {
                 >
                   <FormControl>
                     <SelectTrigger className="h-12 text-base">
-                      <SelectValue placeholder="Select a chapter" />
+                      <SelectValue placeholder="All Chapters in Unit" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -282,7 +283,7 @@ export function TestGenerationForm() {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>Leave blank to test the whole unit.</FormDescription>
+                <FormDescription>Leave blank or select all to test the whole unit.</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
