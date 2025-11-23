@@ -105,7 +105,7 @@ export default function HomePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {progressPercentage > 0 && (
+          {(progressPercentage > 0 || (userData && Object.keys(userData.learningProgress || {}).length === 0)) && (
             <div>
               <Progress value={progressPercentage} className="w-full" />
               <p className="text-right text-sm text-muted-foreground mt-2">{progressPercentage}% पूरा हुआ</p>
@@ -135,7 +135,7 @@ export default function HomePage() {
       {/* Feature Cards */}
       <div className="space-y-4 pt-8">
         <h2 className="font-headline text-2xl font-bold">मुख्य फीचर्स</h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
           {featureCards.map((feature) => {
             const featureImage = PlaceHolderImages.find(
               (img) => img.id === feature.imageId
