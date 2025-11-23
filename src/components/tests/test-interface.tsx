@@ -13,8 +13,8 @@ type TestInterfaceProps = {
 };
 
 export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInterfaceProps) {
-  // Simple parsing of questions. Assumes questions start with a number and a dot.
-  const questions = examContent.split('\n').filter(line => /^\d+\./.test(line.trim()));
+  // Flexible parsing of questions. Handles different numbering styles (e.g., "1.", "1)", "1 ").
+  const questions = examContent.split('\n').filter(line => /^\s*\d+[\.\)]?\s/.test(line.trim()));
   const [answers, setAnswers] = useState<{ [key: string]: string }>(
     questions.reduce((acc, _, index) => ({ ...acc, [index]: "" }), {})
   );
@@ -36,29 +36,38 @@ export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInter
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-6">
-            {questions.map((question, index) => (
-              <div key={index} className="space-y-2">
-                <p className="font-semibold">{question}</p>
-                <Textarea
-                  value={answers[index]}
-                  onChange={(e) => handleAnswerChange(index, e.target.value)}
-                  placeholder="अपना उत्तर यहाँ लिखें..."
-                  className="min-h-[100px] text-base"
-                  disabled={isSubmitting}
-                />
-              </div>
-            ))}
+            {questions.length > 0 ? (
+              questions.map((question, index) => (
+                <div key={index} className="space-y-2">
+                  <p className="font-semibold">{question}</p>
+                  <Textarea
+                    value={answers[index]}
+                    onChange={(e) => handleAnswerChange(index, e.target.value)}
+                    placeholder="अपना उत्तर यहाँ लिखें..."
+                    className="min-h-[100px] text-base"
+                    disabled={isSubmitting}
+                  />
+                </div>
+              ))
+            ) : (
+                <div className="text-center text-muted-foreground p-8">
+                    <p className="mb-4">माफ़ कीजिए, उत्पन्न किए गए परीक्षा-पत्र से प्रश्नों को निकाला नहीं जा सका।</p>
+                    <p>यह एक अस्थायी समस्या हो सकती है। कृपया एक नई परीक्षा उत्पन्न करने का प्रयास करें।</p>
+                </div>
+            )}
           </div>
-          <CardFooter className="p-0">
-            <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
-              {isSubmitting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="mr-2 h-4 w-4" />
-              )}
-              Submit for Evaluation
-            </Button>
-          </CardFooter>
+          {questions.length > 0 && (
+            <CardFooter className="p-0">
+                <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
+                {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                    <Send className="mr-2 h-4 w-4" />
+                )}
+                Submit for Evaluation
+                </Button>
+            </CardFooter>
+          )}
         </form>
       </CardContent>
     </Card>
