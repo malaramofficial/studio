@@ -86,15 +86,14 @@ export function TestGenerationForm() {
     const firstSubject = syllabus.find((s) => s.id === streamId)?.subjects[0];
     if (firstSubject) {
       form.setValue("subjectId", firstSubject.id);
-      form.setValue("unitId", firstSubject.units[0]?.id || "");
+      form.setValue("unitId", "");
       form.setValue("chapterId", "");
     }
   };
 
   const handleSubjectChange = (subjectId: string) => {
     form.setValue("subjectId", subjectId);
-    const subject = selectedStream?.subjects.find((s) => s.id === subjectId);
-    form.setValue("unitId", subject?.units[0]?.id || "");
+    form.setValue("unitId", "");
     form.setValue("chapterId", "");
   };
 
@@ -107,17 +106,26 @@ export function TestGenerationForm() {
     const subject = selectedSubject?.name;
     let chapters: string[] = [];
 
+    const unit = selectedSubject?.units.find(u => u.id === values.unitId);
+
     if (values.chapterId && values.chapterId !== "all") {
-        const chapter = selectedUnit?.chapters.find(c => c.id === values.chapterId)?.name;
-        if(chapter) chapters.push(chapter);
-    } else if (values.unitId) {
-        const unit = selectedSubject?.units.find(u => u.id === values.unitId);
-        if(unit) {
-            chapters = unit.chapters.map(c => c.name).length > 0 ? unit.chapters.map(c => c.name) : [unit.name];
+        const chapter = unit?.chapters.find(c => c.id === values.chapterId)?.name;
+        if (chapter) {
+            chapters.push(chapter);
+        }
+    } else if (unit) {
+        if (unit.chapters.length > 0) {
+            chapters = unit.chapters.map(c => c.name);
+        } else {
+            // If unit has no chapters, use the unit name itself
+            chapters.push(unit.name);
         }
     }
 
-    if (!subject || chapters.length === 0) return;
+    if (!subject || chapters.length === 0) {
+        console.error("Subject not found or no chapters selected.");
+        return;
+    }
 
     startTransition(async () => {
       const generatedExam = await generateWrittenExam({
@@ -240,6 +248,7 @@ export function TestGenerationForm() {
                 <Select
                   onValueChange={handleUnitChange}
                   value={field.value}
+                  disabled={!subjectId}
                 >
                   <FormControl>
                     <SelectTrigger className="h-12 text-base">
@@ -297,3 +306,5 @@ export function TestGenerationForm() {
     </Form>
   );
 }
+
+    
