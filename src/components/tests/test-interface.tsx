@@ -13,8 +13,8 @@ type TestInterfaceProps = {
 };
 
 export function TestInterface({ examContent, isSubmitting, onSubmit }: TestInterfaceProps) {
-  // More flexible parsing for questions. Handles numbering like "1.", "1)", or just "1 " followed by text.
-  const questions = examContent.split('\n').filter(line => /^\s*\d+[\.\)]?\s+/.test(line.trim()));
+  // Regex to find lines starting with "Question", "Q.", "Q#", or just a number followed by a period/parenthesis.
+  const questions = examContent.split('\n').filter(line => /^\s*(question|q)?\s*#?\s*\d+[\.\)]?\s+/i.test(line.trim()));
   const [answers, setAnswers] = useState<{ [key: string]: string }>(
     questions.reduce((acc, _, index) => ({ ...acc, [index]: "" }), {})
   );
