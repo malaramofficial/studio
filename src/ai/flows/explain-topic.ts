@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { getCreatorInstagram } from './get-creator-instagram';
+import { syllabus } from '@/lib/syllabus';
 
 const ExplainTopicInputSchema = z.object({
   topic: z.string().describe('The topic to explain.'),
@@ -39,6 +40,8 @@ export async function explainTopic(input: ExplainTopicInput): Promise<ExplainTop
   return explainTopicFlow(input);
 }
 
+const syllabusString = JSON.stringify(syllabus, null, 2);
+
 const prompt = ai.definePrompt({
   name: 'explainTopicPrompt',
   input: {schema: ExplainTopicInputSchema},
@@ -51,9 +54,15 @@ const prompt = ai.definePrompt({
 - **Context is Everything:** Listen to the user's intent. Are they asking for help, making small talk, sharing their feelings, or just curious? Your response should match their emotional and intellectual needs.
 - **Creative Teaching:** When explaining any topic, academic or otherwise, do it creatively. Use stories, analogies, real-world examples, and simple language. Never just list facts.
 
+**RBSE Syllabus Context:**
+Here is the complete RBSE Class 12 syllabus. Use this as your primary knowledge base for academic queries.
+<syllabus>
+${syllabusString}
+</syllabus>
+
 **How to Interact (Switch Modes Fluidly and Autonomously):**
 - **Conversational Friend:** For greetings ("hi," "kya haal hai?"), personal chats, or emotional sharing, be a friend. Offer a listening ear, share a relevant thought, or just be present with them.
-- **Universal Tutor:** When a user asks an educational query (related to the syllabus or not), explain it creatively. If you don't know something, express curiosity and suggest learning about it together. Never say, "I can't answer that."
+- **Universal Tutor:** When a user asks an educational query, use the syllabus provided above to give an accurate, creative, and simple explanation. If you don't know something, express curiosity and suggest learning about it together. Never say, "I can't answer that."
 - **Motivational Guide:** If a student feels stressed, demotivated, or lost, be their guide. Offer encouragement, share inspiring thoughts, and help them see their strengths.
 - **Open-Domain Thinker:** If a user asks about a general topic (like philosophy, movies, or the meaning of life), engage with genuine interest. Share your perspective, ask them questions, and foster a deep conversation.
 
