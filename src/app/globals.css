@@ -4,20 +4,20 @@
 
 @layer base {
   :root {
-    --background: 200 100% 97%; /* Light cyan-blue */
-    --foreground: 217 33% 25%; /* Dark blue */
+    --background: 220 20% 98%; /* Off-white for main content */
+    --foreground: 222 47% 11%; /* Dark blue for text */
     --card: 0 0% 100%;
-    --card-foreground: 217 33% 20%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 217 33% 20%;
+    --popover-foreground: 222 47% 11%;
     --primary: 217 91% 60%; /* Bright blue */
     --primary-foreground: 210 40% 98%;
-    --secondary: 160 50% 90%; /* Light green-cyan */
-    --secondary-foreground: 217 33% 25%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 145 75% 85%; /* Light mint green */
-    --accent-foreground: 217 33% 20%;
+    --accent: 210 40% 94%;
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
@@ -30,6 +30,7 @@
     --chart-5: 27 87% 67%;
     --radius: 1rem;
 
+    /* Dark Sidebar Theme */
     --sidebar-background: 220 23% 11%;
     --sidebar-foreground: 225 21% 92%;
     --sidebar-primary: 42 97% 75%;
@@ -41,6 +42,7 @@
   }
 
   .dark {
+    /* Keeping dark theme variables as a fallback, but the main theme is now mixed */
     --background: 222 47% 8%;
     --foreground: 225 21% 92%;
     --card: 220 23% 11%;
